@@ -1,0 +1,22 @@
+name: myanmar_alphabet
+description: Myanmar alphabet tracing app for children
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  confetti: ^0.7.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Pyidaungsu
+      fonts:
+        - asset: assets/fonts/Pyidaungsu-2.5.3_Regular.ttf
+        - asset: assets/fonts/Pyidaungsu-2.5.3_Bold.ttf
+          weight: 700
