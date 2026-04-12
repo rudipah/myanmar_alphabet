@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   confetti: ^0.7.0
+  google_mobile_ads: ^5.1.0
 
 flutter:
   uses-material-design: true

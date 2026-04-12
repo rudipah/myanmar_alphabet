@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Only initialize AdMob on Android/iOS — NOT on web
+  if (!kIsWeb) {
+    await MobileAds.instance.initialize();
+  }
+
   runApp(const MyanmarAlphabetApp());
 }
 

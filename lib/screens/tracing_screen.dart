@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:confetti/confetti.dart';
 import '../models/letter.dart';
 import '../widgets/tracing_canvas.dart';
+
+// Only import AdMob on mobile platforms
+import 'package:google_mobile_ads/google_mobile_ads.dart'
+    if (dart.library.html) '../utils/ads_stub.dart';
+
+// Replace with your real Ad Unit ID before publishing
+const String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
 class TracingScreen extends StatefulWidget {
   final MyanmarLetter letter;
@@ -22,17 +30,42 @@ class _TracingScreenState extends State<TracingScreen> {
   bool _hasDrawn = false;
   late ConfettiController _confettiController;
 
+  BannerAd? _bannerAd;
+  bool _isBannerAdReady = false;
+
   @override
   void initState() {
     super.initState();
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
+    // Only load ads on mobile
+    if (!kIsWeb) {
+      _loadBannerAd();
+    }
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: _bannerAdUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() => _isBannerAdReady = true);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          _bannerAd = null;
+        },
+      ),
+    )..load();
   }
 
   @override
   void dispose() {
     _confettiController.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -49,7 +82,6 @@ class _TracingScreenState extends State<TracingScreen> {
     if (!_hasDrawn) return;
     _confettiController.play();
     Future.delayed(const Duration(milliseconds: 1800), () {
-      // Clear canvas BEFORE moving to next letter
       _canvasKey.currentState?.clear();
       setState(() => _hasDrawn = false);
       widget.onNext();
@@ -70,10 +102,9 @@ class _TracingScreenState extends State<TracingScreen> {
               child: Column(
                 children: [
 
-                  // ---- Header row with back + letter info ----
+                  // ---- Header row ----
                   Row(
                     children: [
-                      // 🏠 Home button
                       IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.home_rounded),
@@ -141,11 +172,11 @@ class _TracingScreenState extends State<TracingScreen> {
 
                   const SizedBox(height: 16),
 
-                  // ---- Tracing Canvas — square so letter always fits ----
+                  // ---- Tracing Canvas ----
                   Expanded(
                     child: Center(
                       child: AspectRatio(
-                        aspectRatio: 1.0, // always square
+                        aspectRatio: 1.0,
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(24),
@@ -215,6 +246,16 @@ class _TracingScreenState extends State<TracingScreen> {
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 8),
+
+                  // ---- Banner Ad (mobile only) ----
+                  if (!kIsWeb && _isBannerAdReady && _bannerAd != null)
+                    SizedBox(
+                      width: _bannerAd!.size.width.toDouble(),
+                      height: _bannerAd!.size.height.toDouble(),
+                      child: AdWidget(ad: _bannerAd!),
+                    ),
 
                 ],
               ),
