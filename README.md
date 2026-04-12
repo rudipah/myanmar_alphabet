@@ -1,4 +1,4 @@
-# myanmar_tracing
+# myanmar_alphabet
 
 A new Flutter project.
 
