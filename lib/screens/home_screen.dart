@@ -5,7 +5,8 @@ import '../models/letter.dart';
 import 'tracing_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int initialTab;
+  const HomeScreen({super.key, this.initialTab = 0});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -18,7 +19,11 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTab,
+    );
   }
 
   @override
@@ -40,17 +45,29 @@ class _HomeScreenState extends State<HomeScreen>
 
               // ---- Header ----
               const SizedBox(height: 8),
-              const Text(
-                '✏️ Myanmar Alphabet',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF2D2D4E),
-                ),
-              ),
-              const Text(
-                'Tap to start tracing!',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back_ios_rounded),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF2D2D4E),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    '✏️ Myanmar Alphabet',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF2D2D4E),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
 
@@ -80,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen>
                     fontSize: 15,
                   ),
                   tabs: const [
-                    Tab(text: '🔤 Letters'),
+                    Tab(text: '🔤 Consonants'),
                     Tab(text: '🔢 Numbers'),
                   ],
                 ),
@@ -92,16 +109,8 @@ class _HomeScreenState extends State<HomeScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    // Tab 1: Letters
-                    _LetterGrid(
-                      items: myanmarLetters,
-                      crossAxisCount: 5,
-                    ),
-                    // Tab 2: Numbers
-                    _LetterGrid(
-                      items: myanmarNumbers,
-                      crossAxisCount: 4,
-                    ),
+                    _LetterGrid(items: myanmarLetters, crossAxisCount: 5),
+                    _LetterGrid(items: myanmarNumbers, crossAxisCount: 4),
                   ],
                 ),
               ),
@@ -113,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-// ---- Reusable grid for both letters and numbers ----
+// ---- Reusable grid ----
 class _LetterGrid extends StatelessWidget {
   final List<MyanmarLetter> items;
   final int crossAxisCount;
@@ -185,7 +194,7 @@ class _LetterGrid extends StatelessWidget {
   }
 }
 
-// ---- Tracing screen wrapper with prev/next nav ----
+// ---- Tracing screen wrapper ----
 class TracingScreenWithNav extends StatefulWidget {
   final List<MyanmarLetter> items;
   final int startIndex;

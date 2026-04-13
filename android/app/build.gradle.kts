@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myanmar_tracing"
+    namespace = "com.example.myanmar_alphabet"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

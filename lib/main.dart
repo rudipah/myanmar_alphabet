@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'screens/home_screen.dart';
+import 'screens/menu_screen.dart';
+import 'services/sound_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Only initialize AdMob on Android/iOS — NOT on web
   if (!kIsWeb) {
     await MobileAds.instance.initialize();
+    await SoundService.init();
   }
 
   runApp(const MyanmarAlphabetApp());
@@ -28,7 +29,7 @@ class MyanmarAlphabetApp extends StatelessWidget {
           seedColor: const Color(0xFF6C5CE7),
         ),
       ),
-      home: const HomeScreen(),
+      home: const MenuScreen(),
     );
   }
 }

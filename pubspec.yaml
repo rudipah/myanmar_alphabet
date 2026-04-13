@@ -11,9 +11,13 @@ dependencies:
     sdk: flutter
   confetti: ^0.7.0
   google_mobile_ads: ^5.1.0
+  just_audio: ^0.9.40
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/audio/
 
   fonts:
     - family: Pyidaungsu

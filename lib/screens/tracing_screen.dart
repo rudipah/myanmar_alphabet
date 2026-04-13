@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:confetti/confetti.dart';
-import '../models/letter.dart';
-import '../widgets/tracing_canvas.dart';
-
-// Only import AdMob on mobile platforms
 import 'package:google_mobile_ads/google_mobile_ads.dart'
     if (dart.library.html) '../utils/ads_stub.dart';
+import '../models/letter.dart';
+import '../widgets/tracing_canvas.dart';
+import '../services/sound_service.dart';
 
 // Replace with your real Ad Unit ID before publishing
 const String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
@@ -28,8 +27,8 @@ class TracingScreen extends StatefulWidget {
 class _TracingScreenState extends State<TracingScreen> {
   final GlobalKey<TracingCanvasState> _canvasKey = GlobalKey();
   bool _hasDrawn = false;
+  bool _isSpeaking = false;
   late ConfettiController _confettiController;
-
   BannerAd? _bannerAd;
   bool _isBannerAdReady = false;
 
@@ -39,10 +38,17 @@ class _TracingScreenState extends State<TracingScreen> {
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
-    // Only load ads on mobile
     if (!kIsWeb) {
       _loadBannerAd();
     }
+  }
+
+  Future<void> _speakLetter() async {
+    if (_isSpeaking) return;
+    setState(() => _isSpeaking = true);
+    debugPrint('🔊 Tapped: ${widget.letter.name} / ${widget.letter.audioFile}');
+    await SoundService.playLetter(widget.letter.audioFile);
+    if (mounted) setState(() => _isSpeaking = false);
   }
 
   void _loadBannerAd() {
@@ -66,6 +72,7 @@ class _TracingScreenState extends State<TracingScreen> {
   void dispose() {
     _confettiController.dispose();
     _bannerAd?.dispose();
+    SoundService.stop(); // Stop audio when leaving screen
     super.dispose();
   }
 
@@ -105,6 +112,7 @@ class _TracingScreenState extends State<TracingScreen> {
                   // ---- Header row ----
                   Row(
                     children: [
+                      // Home button
                       IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.home_rounded),
@@ -118,6 +126,8 @@ class _TracingScreenState extends State<TracingScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
+
+                      // Letter badge
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 10),
@@ -142,35 +152,73 @@ class _TracingScreenState extends State<TracingScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.letter.emoji,
-                            style: const TextStyle(fontSize: 28),
-                          ),
-                          Text(
-                            widget.letter.name,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF2D2D4E),
+                      const SizedBox(width: 12),
+
+                      // Letter info + sound button
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  widget.letter.emoji,
+                                  style: const TextStyle(fontSize: 22),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  widget.letter.name,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF2D2D4E),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            Text(
+                              'Trace the letter below!',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // 🔊 Sound button
+                      GestureDetector(
+                        onTap: _speakLetter,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _isSpeaking
+                                ? color
+                                : color.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: color.withOpacity(0.4),
+                              width: 2,
                             ),
                           ),
-                          Text(
-                            'Trace the letter below!',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
+                          child: Icon(
+                            _isSpeaking
+                                ? Icons.volume_up_rounded
+                                : Icons.volume_up_outlined,
+                            color: _isSpeaking ? Colors.white : color,
+                            size: 28,
                           ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
+
+
 
                   // ---- Tracing Canvas ----
                   Expanded(
