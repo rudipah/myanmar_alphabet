@@ -41,11 +41,11 @@ class _MenuScreenState extends State<MenuScreen>
     super.dispose();
   }
 
-  void _navigate(BuildContext context, int tabIndex) {
+  void _navigate(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => HomeScreen(initialTab: tabIndex),
+        builder: (_) => const HomeScreen(),
       ),
     );
   }
@@ -79,7 +79,7 @@ class _MenuScreenState extends State<MenuScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
 
-                    // ---- App icon / logo ----
+                    // ---- App icon ----
                     Container(
                       width: 110,
                       height: 110,
@@ -108,7 +108,7 @@ class _MenuScreenState extends State<MenuScreen>
 
                     // ---- Title ----
                     const Text(
-                      'Myanmar Alphabet',
+                      'Learn Myanmar Alphabet',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
@@ -118,7 +118,7 @@ class _MenuScreenState extends State<MenuScreen>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Learn to write Myanmar letters!',
+                      'Learn to write Myanmar letters! 🎉',
                       style: TextStyle(
                         fontSize: 15,
                         color: Colors.white.withOpacity(0.8),
@@ -127,130 +127,42 @@ class _MenuScreenState extends State<MenuScreen>
 
                     const SizedBox(height: 52),
 
-                    // ---- Menu buttons ----
-                    _MenuButton(
-                      emoji: '🔤',
-                      title: 'Consonants',
-                      subtitle: '33 Myanmar letters',
-                      color: const Color(0xFFFF6B6B),
-                      onTap: () => _navigate(context, 0),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    _MenuButton(
-                      emoji: '🔢',
-                      title: 'Numbers',
-                      subtitle: '0 to 10',
-                      color: const Color(0xFF00B894),
-                      onTap: () => _navigate(context, 1),
+                    // ---- Start button ----
+                    GestureDetector(
+                      onTap: () => _navigate(context),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.12),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '✏️  Start Learning',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF6C5CE7),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 52),
-
-                    // ---- Footer ----
-                    Text(
-                      'Tap a card to start tracing ✏️',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withOpacity(0.6),
-                      ),
-                    ),
                   ],
                 ),
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---- Reusable menu button card ----
-class _MenuButton extends StatelessWidget {
-  final String emoji;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _MenuButton({
-    required this.emoji,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-            horizontal: 24, vertical: 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.12),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Emoji icon box
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Text(
-                  emoji,
-                  style: const TextStyle(fontSize: 30),
-                ),
-              ),
-            ),
-            const SizedBox(width: 20),
-            // Title and subtitle
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: color,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Arrow icon
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: color,
-              size: 20,
-            ),
-          ],
         ),
       ),
     );

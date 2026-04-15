@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
+  int _currentIndex = 0;
   @override
   void initState() {
     super.initState();
@@ -24,6 +24,13 @@ class _HomeScreenState extends State<HomeScreen>
       vsync: this,
       initialIndex: widget.initialTab,
     );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+
+      setState(() {
+        _currentIndex = _tabController.index;
+      });
+    });
   }
 
   @override
@@ -42,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               // ---- Header ----
               const SizedBox(height: 8),
               Row(
@@ -60,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    '✏️ Myanmar Alphabet',
+                    '✏️ Learn Myanmar Alphabet',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
@@ -96,10 +102,38 @@ class _HomeScreenState extends State<HomeScreen>
                     fontWeight: FontWeight.w900,
                     fontSize: 15,
                   ),
-                  tabs: const [
-                    Tab(text: '🔤 Consonants'),
-                    Tab(text: '🔢 Numbers'),
-                  ],
+                  tabs: List.generate(2, (index) {
+                    final isSelected = _currentIndex == index;
+
+                    return Tab(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF6C5CE7) // selected background
+                              : Colors.white, // unselected background
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF6C5CE7),
+                            width: 1.5,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Center(
+                          child: Text(
+                            index == 0 ? '🔤 Consonants' : '🔢 Numbers',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 14,
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF6C5CE7),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                 ),
               ),
               const SizedBox(height: 16),

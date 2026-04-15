@@ -21,7 +21,7 @@ class MyanmarAlphabetApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Myanmar Alphabet',
+      title: 'Learn Myanmar Alphabet',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
