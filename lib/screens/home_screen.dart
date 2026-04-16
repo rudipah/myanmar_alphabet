@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    '✏️ Learn Myanmar Alphabet',
+                    'Learn Myanmar Alphabet',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
@@ -178,48 +178,53 @@ class _LetterGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         final item = items[index];
         final color = Color(item.colorValue);
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TracingScreenWithNav(
-                  items: items,
-                  startIndex: index,
-                ),
-              ),
-            );
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: color.withOpacity(0.4),
-                width: 2,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  item.character,
-                  style: TextStyle(
-                    fontFamily: 'Pyidaungsu',
-                    fontSize: 28,
-                    color: color,
-                    fontWeight: FontWeight.bold,
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TracingScreenWithNav(
+                    items: items,
+                    startIndex: index,
                   ),
                 ),
-                Text(
-                  item.name,
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: color,
-                    fontWeight: FontWeight.w700,
-                  ),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: color.withOpacity(0.4),
+                  width: 1.5,
                 ),
-              ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item.character,
+                    style: TextStyle(
+                      fontFamily: 'Pyidaungsu',
+                      fontSize: 30,
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

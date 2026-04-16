@@ -15,3 +15,42 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+###
+# 🇲🇲 Myanmar Alphabet Learning App
+
+A simple and interactive web application designed to help beginners learn the Myanmar (Burmese) alphabet.
+
+## 📌 Overview
+
+This project provides an easy way to explore and recognize Myanmar characters. It is designed for learners who are new to the language and want a simple, visual introduction to the alphabet.
+
+## 🎯 Features
+
+- Display Myanmar alphabet characters
+- Clean and simple user interface
+- Beginner-friendly layout
+- Fast and lightweight
+
+## 🛠 Tech Stack
+
+- React
+- TypeScript (if applicable)
+- HTML / CSS
+
+## 🚀 Getting Started
+
+Follow these steps to run the project locally:
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/rudipah/myanmar_alphabet.git
+
+## 🚀 Run the App
+
+```bash
+git clone https://github.com/rudipah/myanmar_alphabet.git
+cd myanmar_alphabet
+npm install
+npm start
+

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:confetti/confetti.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart'
     if (dart.library.html) '../utils/ads_stub.dart';
 import '../models/letter.dart';
@@ -45,10 +46,16 @@ class _TracingScreenState extends State<TracingScreen> {
 
   Future<void> _speakLetter() async {
     if (_isSpeaking) return;
+
     setState(() => _isSpeaking = true);
-    debugPrint('🔊 Tapped: ${widget.letter.name} / ${widget.letter.audioFile}');
-    await SoundService.playLetter(widget.letter.audioFile);
-    if (mounted) setState(() => _isSpeaking = false);
+
+    try {
+      await SoundService.playLetter(widget.letter.audioFile);
+    } finally {
+      if (mounted) {
+        setState(() => _isSpeaking = false);
+      }
+    }
   }
 
   void _loadBannerAd() {
@@ -89,6 +96,9 @@ class _TracingScreenState extends State<TracingScreen> {
     if (!_hasDrawn) return;
     _confettiController.play();
     Future.delayed(const Duration(milliseconds: 1800), () {
+      if (!mounted) return;
+      HapticFeedback.mediumImpact();
+
       _canvasKey.currentState?.clear();
       setState(() => _hasDrawn = false);
       widget.onNext();
@@ -104,11 +114,23 @@ class _TracingScreenState extends State<TracingScreen> {
       body: SafeArea(
         child: Stack(
           children: [
+            Center(
+              child: Opacity(
+                opacity: 0.08,
+                child: Text(
+                  widget.letter.character,
+                  style: const TextStyle(
+                    fontSize: 120,
+                    fontFamily: 'Pyidaungsu',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-
                   // ---- Header row ----
                   Row(
                     children: [
@@ -176,7 +198,6 @@ class _TracingScreenState extends State<TracingScreen> {
                                 ),
                               ],
                             ),
-
                             Text(
                               'Trace the letter below!',
                               style: TextStyle(
@@ -189,36 +210,37 @@ class _TracingScreenState extends State<TracingScreen> {
                       ),
 
                       // 🔊 Sound button
-                      GestureDetector(
-                        onTap: _speakLetter,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: _isSpeaking
-                                ? color
-                                : color.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: color.withOpacity(0.4),
-                              width: 2,
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: _speakLetter,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color:
+                                  _isSpeaking ? color : color.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: color.withOpacity(0.4),
+                                width: 2,
+                              ),
+                            ),
+                            child: Icon(
+                              _isSpeaking
+                                  ? Icons.volume_up_rounded
+                                  : Icons.volume_up_outlined,
+                              color: _isSpeaking ? Colors.white : color,
+                              size: 28,
                             ),
                           ),
-                          child: Icon(
-                            _isSpeaking
-                                ? Icons.volume_up_rounded
-                                : Icons.volume_up_outlined,
-                            color: _isSpeaking ? Colors.white : color,
-                            size: 28,
-                          ),
                         ),
-                      ),
+                      )
                     ],
                   ),
 
                   const SizedBox(height: 12),
-
-
 
                   // ---- Tracing Canvas ----
                   Expanded(
@@ -270,24 +292,36 @@ class _TracingScreenState extends State<TracingScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         flex: 2,
-                        child: ElevatedButton(
-                          onPressed: _hasDrawn ? _onDone : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color,
-                            disabledBackgroundColor: Colors.grey[300],
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 6,
-                            shadowColor: color.withOpacity(0.5),
-                          ),
-                          child: const Text(
-                            '✅  Great job! Next →',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: _hasDrawn ? _onDone : null,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                color: _hasDrawn ? color : Colors.grey[300],
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Center(
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  child: Text(
+                                    _hasDrawn
+                                        ? '✅ Great job! Next →'
+                                        : 'Draw to continue',
+                                    key: ValueKey(_hasDrawn),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                      color: _hasDrawn
+                                          ? Colors.white
+                                          : Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -304,7 +338,6 @@ class _TracingScreenState extends State<TracingScreen> {
                       height: _bannerAd!.size.height.toDouble(),
                       child: AdWidget(ad: _bannerAd!),
                     ),
-
                 ],
               ),
             ),
