@@ -11,8 +11,8 @@ class AdHelper {
   // Use test ID during development, real ID in production
   static String get bannerAdUnitId {
     // TODO: Replace with your real Ad Unit ID before publishing
-    // return 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
-    return _testBannerAdUnitId;
+    return 'ca-app-pub-4129659429509766/3143061906';
+    //return _testBannerAdUnitId;
   }
 
   // ---- Initialize AdMob (call once in main.dart) ----

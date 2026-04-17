@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:confetti/confetti.dart';
 import 'package:flutter/services.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart'
-    if (dart.library.html) '../utils/ads_stub.dart';
 import '../models/letter.dart';
 import '../widgets/tracing_canvas.dart';
 import '../services/sound_service.dart';
-
-// Replace with your real Ad Unit ID before publishing
-const String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class TracingScreen extends StatefulWidget {
   final MyanmarLetter letter;
@@ -25,23 +19,159 @@ class TracingScreen extends StatefulWidget {
   State<TracingScreen> createState() => _TracingScreenState();
 }
 
-class _TracingScreenState extends State<TracingScreen> {
+class _TracingScreenState extends State<TracingScreen>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<TracingCanvasState> _canvasKey = GlobalKey();
+
   bool _hasDrawn = false;
   bool _isSpeaking = false;
-  late ConfettiController _confettiController;
   BannerAd? _bannerAd;
-  bool _isBannerAdReady = false;
+  bool _isBannerReady = false;
+  late AnimationController _celebrateController;
+  late Animation<double> _scaleAnim;
+  late Animation<double> _glowAnim;
+
+  ButtonStyle _outlineButtonStyle(Color color) {
+    return OutlinedButton.styleFrom(
+      side: BorderSide(color: color.withOpacity(0.6), width: 2),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      foregroundColor: color,
+    );
+  }
+
+  void _showSuccessPopup(VoidCallback onContinue) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.elasticOut,
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: child,
+            );
+          },
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.celebration,
+                  color: Colors.deepPurple,
+                  size: 60,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "Great Job!",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                // const SizedBox(height: 8),
+                // Text(
+                //   "You traced it correctly 🎉",
+                //   style: TextStyle(
+                //     color: Colors.grey[600],
+                //   ),
+                // ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(widget.letter.colorValue),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context); // close popup
+                    onContinue(); // continue to next letter
+                  },
+                  child: const Text("Continue"),
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(
-      duration: const Duration(seconds: 2),
+
+    _celebrateController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
     );
-    if (!kIsWeb) {
-      _loadBannerAd();
-    }
+
+    _scaleAnim = Tween<double>(begin: 1.0, end: 1.06).animate(
+      CurvedAnimation(
+        parent: _celebrateController,
+        curve: Curves.elasticOut,
+      ),
+    );
+
+    _glowAnim = Tween<double>(begin: 0.0, end: 0.3).animate(
+      CurvedAnimation(
+        parent: _celebrateController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-4129659429509766/3143061906',
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() => _isBannerReady = true);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  void _onDrawStart() {
+    setState(() => _hasDrawn = true);
+  }
+
+  void _onClear() {
+    _canvasKey.currentState?.clear();
+    setState(() => _hasDrawn = false);
+  }
+
+  void _onDone() {
+    if (!_hasDrawn) return;
+
+    HapticFeedback.mediumImpact();
+
+    _celebrateController.forward(from: 0);
+
+    _showSuccessPopup(() {
+      _canvasKey.currentState?.clear();
+      setState(() => _hasDrawn = false);
+
+      widget.onNext();
+    });
   }
 
   Future<void> _speakLetter() async {
@@ -58,53 +188,6 @@ class _TracingScreenState extends State<TracingScreen> {
     }
   }
 
-  void _loadBannerAd() {
-    _bannerAd = BannerAd(
-      adUnitId: _bannerAdUnitId,
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          setState(() => _isBannerAdReady = true);
-        },
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-          _bannerAd = null;
-        },
-      ),
-    )..load();
-  }
-
-  @override
-  void dispose() {
-    _confettiController.dispose();
-    _bannerAd?.dispose();
-    SoundService.stop(); // Stop audio when leaving screen
-    super.dispose();
-  }
-
-  void _onDrawStart() {
-    setState(() => _hasDrawn = true);
-  }
-
-  void _onClear() {
-    _canvasKey.currentState?.clear();
-    setState(() => _hasDrawn = false);
-  }
-
-  void _onDone() {
-    if (!_hasDrawn) return;
-    _confettiController.play();
-    Future.delayed(const Duration(milliseconds: 1800), () {
-      if (!mounted) return;
-      HapticFeedback.mediumImpact();
-
-      _canvasKey.currentState?.clear();
-      setState(() => _hasDrawn = false);
-      widget.onNext();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final color = Color(widget.letter.colorValue);
@@ -112,246 +195,235 @@ class _TracingScreenState extends State<TracingScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF0EEFF),
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            Center(
-              child: Opacity(
-                opacity: 0.08,
-                child: Text(
-                  widget.letter.character,
-                  style: const TextStyle(
-                    fontSize: 120,
-                    fontFamily: 'Pyidaungsu',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+            // ================= HEADER =================
             Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // ---- Header row ----
-                  Row(
-                    children: [
-                      // Home button
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.home_rounded),
-                        iconSize: 30,
+                  // 🏠 Home
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.home_rounded, size: 28),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.all(18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  // 🔤 Letter Badge
+                  Container(
+                    padding:
+                        const EdgeInsets.all(12), // 👈 same as sound button
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(12), // 👈 same radius
+                      border: Border.all(
+                        color: color.withOpacity(0.4), // 👈 same style
+                        width: 2,
+                      ),
+                    ),
+                    child: Text(
+                      widget.letter.character,
+                      style: const TextStyle(
+                        fontFamily: 'Pyidaungsu',
+                        fontSize: 26,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  // 📘 Letter Info (beside badge)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              widget.letter.emoji,
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              widget.letter.name,
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2D2D4E),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Trace the letter',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 🔊 Sound Button
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: _isSpeaking ? color : color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: color.withOpacity(0.4),
+                        width: 2,
+                      ),
+                    ),
+                    child: AnimatedScale(
+                      duration: const Duration(milliseconds: 150),
+                      scale: _isSpeaking ? 1.1 : 1.0,
+                      child: IconButton(
+                        onPressed: _speakLetter,
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF2D2D4E),
+                          side: BorderSide(
+                              color: color.withOpacity(0.4), width: 2),
+                          padding: const EdgeInsets.all(12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-
-                      // Letter badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        decoration: BoxDecoration(
+                        icon: Icon(
+                          _isSpeaking
+                              ? Icons.volume_up
+                              : Icons.volume_up_outlined,
                           color: color,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: color.withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          widget.letter.character,
-                          style: const TextStyle(
-                            fontFamily: 'Pyidaungsu',
-                            fontSize: 52,
-                            color: Colors.white,
-                            height: 1.1,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-
-                      // Letter info + sound button
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  widget.letter.emoji,
-                                  style: const TextStyle(fontSize: 22),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  widget.letter.name,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF2D2D4E),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              'Trace the letter below!',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // 🔊 Sound button
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: _speakLetter,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color:
-                                  _isSpeaking ? color : color.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: color.withOpacity(0.4),
-                                width: 2,
-                              ),
-                            ),
-                            child: Icon(
-                              _isSpeaking
-                                  ? Icons.volume_up_rounded
-                                  : Icons.volume_up_outlined,
-                              color: _isSpeaking ? Colors.white : color,
-                              size: 28,
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // ---- Tracing Canvas ----
-                  Expanded(
-                    child: Center(
-                      child: AspectRatio(
-                        aspectRatio: 1.0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: color, width: 3),
-                            boxShadow: [
-                              BoxShadow(
-                                color: color.withOpacity(0.2),
-                                blurRadius: 20,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          clipBehavior: Clip.hardEdge,
-                          child: TracingCanvas(
-                            key: _canvasKey,
-                            letter: widget.letter.character,
-                            letterColor: color,
-                            onDrawStart: _onDrawStart,
-                          ),
+                          size: 26,
                         ),
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 14),
-
-                  // ---- Buttons ----
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _onClear,
-                          icon: const Text('🗑️'),
-                          label: const Text('Clear'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: _hasDrawn ? _onDone : null,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              decoration: BoxDecoration(
-                                color: _hasDrawn ? color : Colors.grey[300],
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Center(
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 200),
-                                  child: Text(
-                                    _hasDrawn
-                                        ? '✅ Great job! Next →'
-                                        : 'Draw to continue',
-                                    key: ValueKey(_hasDrawn),
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      color: _hasDrawn
-                                          ? Colors.white
-                                          : Colors.grey[700],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // ---- Banner Ad (mobile only) ----
-                  if (!kIsWeb && _isBannerAdReady && _bannerAd != null)
-                    SizedBox(
-                      width: _bannerAd!.size.width.toDouble(),
-                      height: _bannerAd!.size.height.toDouble(),
-                      child: AdWidget(ad: _bannerAd!),
-                    ),
                 ],
               ),
             ),
 
-            // ---- Confetti ----
-            Align(
-              alignment: Alignment.topCenter,
-              child: ConfettiWidget(
-                confettiController: _confettiController,
-                blastDirectionality: BlastDirectionality.explosive,
-                numberOfParticles: 30,
-                colors: [color, Colors.yellow, Colors.green, Colors.pink],
+            // ================= DRAW AREA =================
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: AspectRatio(
+                    aspectRatio: 1, // ✅ makes it square
+                    child: AnimatedBuilder(
+                      animation: _celebrateController,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _scaleAnim.value,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFFDF5),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.grey.withOpacity(0.2),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0xFF6C5CE7)
+                                      .withOpacity(_glowAnim.value),
+                                  blurRadius: 25,
+                                  spreadRadius: 3,
+                                ),
+                              ],
+                            ),
+                            clipBehavior: Clip.hardEdge,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: TracingCanvas(
+                        key: _canvasKey,
+                        letter: widget.letter.character,
+                        letterColor: Color(widget.letter.colorValue),
+                        onDrawStart: _onDrawStart,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
+
+            // ================= BUTTONS =================
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _onClear,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                            color: Colors.grey.withOpacity(0.5), width: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.refresh, size: 18),
+                          SizedBox(width: 6),
+                          Text("Clear"),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _hasDrawn ? _onDone : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _hasDrawn
+                            ? Color(widget.letter.colorValue)
+                            : Colors.grey,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(_hasDrawn ? "Done" : "Draw to continue"),
+                          const SizedBox(width: 6),
+                          Icon(
+                            _hasDrawn ? Icons.arrow_forward : Icons.brush,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (_isBannerReady && _bannerAd != null)
+              SizedBox(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
           ],
         ),
       ),

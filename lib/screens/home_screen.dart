@@ -78,64 +78,39 @@ class _HomeScreenState extends State<HomeScreen>
               const SizedBox(height: 16),
 
               // ---- Tab Bar ----
+              // ---- Toggle Tabs (Duolingo Style) ----
               Container(
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                  color: Colors.grey.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  children: [
+                    _buildToggleTab(
+                      title: "🔤 Consonants",
+                      selected: _currentIndex == 0,
+                      onTap: () {
+                        setState(() {
+                          _currentIndex = 0;
+                          _tabController.animateTo(0);
+                        });
+                      },
+                    ),
+                    _buildToggleTab(
+                      title: "🔢 Numbers",
+                      selected: _currentIndex == 1,
+                      onTap: () {
+                        setState(() {
+                          _currentIndex = 1;
+                          _tabController.animateTo(1);
+                        });
+                      },
                     ),
                   ],
                 ),
-                child: TabBar(
-                  controller: _tabController,
-                  labelColor: const Color(0xFF6C5CE7),
-                  unselectedLabelColor: Colors.grey,
-                  indicator: BoxDecoration(
-                    color: const Color(0xFF6C5CE7).withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  labelStyle: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
-                  ),
-                  tabs: List.generate(2, (index) {
-                    final isSelected = _currentIndex == index;
-
-                    return Tab(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFF6C5CE7) // selected background
-                              : Colors.white, // unselected background
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: const Color(0xFF6C5CE7),
-                            width: 1.5,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Center(
-                          child: Text(
-                            index == 0 ? '🔤 Consonants' : '🔢 Numbers',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 14,
-                              color: isSelected
-                                  ? Colors.white
-                                  : const Color(0xFF6C5CE7),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
               ),
+
               const SizedBox(height: 16),
 
               // ---- Tab Content ----
@@ -154,6 +129,45 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
+}
+
+Widget _buildToggleTab({
+  required String title,
+  required bool selected,
+  required VoidCallback onTap,
+}) {
+  return Expanded(
+    child: GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  )
+                ]
+              : [],
+        ),
+        child: Center(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: selected ? const Color(0xFF2D2D4E) : Colors.grey,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 // ---- Reusable grid ----

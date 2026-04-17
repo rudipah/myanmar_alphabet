@@ -7,7 +7,7 @@ import 'services/app_initializer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await MobileAds.instance.initialize();
   try {
     await AppInitializer.init();
   } catch (e) {
