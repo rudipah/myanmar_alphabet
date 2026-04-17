@@ -8,11 +8,15 @@ class AdHelper {
   static const String _testBannerAdUnitId =
       'ca-app-pub-3940256099942544/6300978111'; // Google test ID
 
-  // Use test ID during development, real ID in production
+  static const String _prodBannerAdUnitId =
+      'ca-app-pub-4129659429509766/3143061906';
+
+  static const bool _isProduction = true; // <-- change only this
+
   static String get bannerAdUnitId {
-    // TODO: Replace with your real Ad Unit ID before publishing
-    return 'ca-app-pub-4129659429509766/3143061906';
-    //return _testBannerAdUnitId;
+    return _isProduction
+        ? _prodBannerAdUnitId
+        : _testBannerAdUnitId;
   }
 
   // ---- Initialize AdMob (call once in main.dart) ----

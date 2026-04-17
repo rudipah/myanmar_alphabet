@@ -108,7 +108,7 @@ class _MenuScreenState extends State<MenuScreen>
                     const Text(
                       'Learn Myanmar Alphabet',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 25,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
                         letterSpacing: 0.5,

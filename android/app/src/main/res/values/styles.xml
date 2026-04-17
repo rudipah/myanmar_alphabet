@@ -5,14 +5,12 @@
         <!-- Show a splash screen on the activity. Automatically removed when
              the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@android:color/white</item>
+        <!-- Set plain background -->
+        <!-- Optional: remove icon background -->
         <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-        <!-- Set plain background -->
-        <item name="android:windowSplashScreenBackground">@android:color/white</item>
-        <!-- Optional: remove icon background -->
-        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
