@@ -30,6 +30,8 @@
 	<true/>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>This app uses data to show relevant ads.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone access may be used for audio interaction and learning features in the app.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
