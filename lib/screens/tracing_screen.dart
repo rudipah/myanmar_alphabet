@@ -133,7 +133,7 @@ class _TracingScreenState extends State<TracingScreen>
       adUnitId: 'ca-app-pub-4129659429509766/3143061906', // Production Ad Unit ID --- IGNORE ---
       // adUnitId: 'ca-app-pub-3940256099942544/2934735716', // Test Ad Unit ID
       size: AdSize.banner,
-      request: const AdRequest(),
+      request: const AdRequest(nonPersonalizedAds: true,),
       listener: BannerAdListener(
         onAdLoaded: (ad) {
           print("Ad Loaded ✅");

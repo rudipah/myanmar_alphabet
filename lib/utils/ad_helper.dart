@@ -32,7 +32,7 @@ class AdHelper {
     return BannerAd(
       adUnitId: bannerAdUnitId,
       size: AdSize.banner, // 320x50 standard banner
-      request: const AdRequest(),
+      request: const AdRequest(nonPersonalizedAds: true,),
       listener: BannerAdListener(
         onAdLoaded: onAdLoaded,
         onAdFailedToLoad: onAdFailedToLoad,

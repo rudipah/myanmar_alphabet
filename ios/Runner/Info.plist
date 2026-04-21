@@ -28,8 +28,6 @@
 	<string>ca-app-pub-4129659429509766~4839286959</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>This app uses data to show relevant ads.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone access may be used for audio interaction and learning features in the app.</string>
 	<key>UIApplicationSceneManifest</key>
