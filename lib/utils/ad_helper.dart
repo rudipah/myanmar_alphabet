@@ -1,38 +1,52 @@
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:io';
 
 class AdHelper {
   // ---------------------------------------------------------------
-  // Replace these with your REAL Ad Unit IDs from AdMob
-  // These are TEST IDs — safe to use during development
+  // Test Ad Unit ID (safe for development)
   // ---------------------------------------------------------------
   static const String _testBannerAdUnitId =
-      'ca-app-pub-3940256099942544/6300978111'; // Google test ID
+      'ca-app-pub-3940256099942544/6300978111';
 
-  static const String _prodBannerAdUnitId =
-      'ca-app-pub-4129659429509766/3143061906';
+  // ---------------------------------------------------------------
+  // Toggle production vs test ads
+  // ---------------------------------------------------------------
+  static const bool _isProduction =
+      false; // Set to true for production, false for testing
 
-  static const bool _isProduction = true; // <-- change only this
-
+  // ---------------------------------------------------------------
+  // Platform-specific Ad Unit ID
+  // ---------------------------------------------------------------
   static String get bannerAdUnitId {
-    return _isProduction
-        ? _prodBannerAdUnitId
-        : _testBannerAdUnitId;
+    if (_isProduction) {
+      if (Platform.isAndroid) {
+        return 'ca-app-pub-4129659429509766/3143061906'; // Android
+      } else if (Platform.isIOS) {
+        return 'ca-app-pub-4129659429509766/7699563630'; // iOS
+      } else {
+        throw UnsupportedError('Unsupported platform');
+      }
+    } else {
+      return _testBannerAdUnitId;
+    }
   }
 
-  // ---- Initialize AdMob (call once in main.dart) ----
+  // ---- Initialize AdMob ----
   static Future<void> initialize() async {
     await MobileAds.instance.initialize();
   }
 
-  // ---- Create a banner ad ----
+  // ---- Create Banner Ad ----
   static BannerAd createBannerAd({
     required void Function(Ad, LoadAdError) onAdFailedToLoad,
     required void Function(Ad) onAdLoaded,
   }) {
     return BannerAd(
       adUnitId: bannerAdUnitId,
-      size: AdSize.banner, // 320x50 standard banner
-      request: const AdRequest(nonPersonalizedAds: true,),
+      size: AdSize.banner,
+      request: const AdRequest(
+        nonPersonalizedAds: true,
+      ),
       listener: BannerAdListener(
         onAdLoaded: onAdLoaded,
         onAdFailedToLoad: onAdFailedToLoad,
