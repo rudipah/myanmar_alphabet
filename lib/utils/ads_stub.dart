@@ -28,7 +28,7 @@ class AdSize {
 
 class AdRequest {
   final bool nonPersonalizedAds;
-  const AdRequest({this.nonPersonalizedAds = false});
+  const AdRequest({this.nonPersonalizedAds = true});
 }
 
 
