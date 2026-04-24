@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 class BannerAd {
   final String adUnitId;
   final dynamic size;
-  final dynamic request;
-  final dynamic listener;
+  final AdRequest request;
+  final BannerAdListener listener;
   BannerAd({
     required this.adUnitId,
     required this.size,
     required this.request,
     required this.listener,
   });
-  AdSize get size2 => AdSize.banner;
+  // AdSize get size2 => AdSize.banner;
   void load() {}
   void dispose() {}
 }
@@ -27,8 +27,10 @@ class AdSize {
 }
 
 class AdRequest {
-  const AdRequest();
+  final bool nonPersonalizedAds;
+  const AdRequest({this.nonPersonalizedAds = true});
 }
+
 
 class BannerAdListener {
   final Function(dynamic)? onAdLoaded;

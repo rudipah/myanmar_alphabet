@@ -4,16 +4,13 @@ import '../models/letter.dart';
 import '../widgets/tracing_canvas.dart';
 import '../services/sound_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../utils/ad_helper.dart';
 
 class TracingScreen extends StatefulWidget {
   final MyanmarLetter letter;
   final VoidCallback onNext;
 
-  const TracingScreen({
-    super.key,
-    required this.letter,
-    required this.onNext,
-  });
+  const TracingScreen({super.key, required this.letter, required this.onNext});
 
   @override
   State<TracingScreen> createState() => _TracingScreenState();
@@ -34,9 +31,7 @@ class _TracingScreenState extends State<TracingScreen>
   ButtonStyle _outlineButtonStyle(Color color) {
     return OutlinedButton.styleFrom(
       side: BorderSide(color: color.withOpacity(0.6), width: 2),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       padding: const EdgeInsets.symmetric(vertical: 14),
       foregroundColor: color,
     );
@@ -52,10 +47,7 @@ class _TracingScreenState extends State<TracingScreen>
           duration: const Duration(milliseconds: 300),
           curve: Curves.elasticOut,
           builder: (context, value, child) {
-            return Transform.scale(
-              scale: value,
-              child: child,
-            );
+            return Transform.scale(scale: value, child: child);
           },
           child: AlertDialog(
             shape: RoundedRectangleBorder(
@@ -72,10 +64,7 @@ class _TracingScreenState extends State<TracingScreen>
                 const SizedBox(height: 12),
                 const Text(
                   "Great Job!",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 // const SizedBox(height: 8),
                 // Text(
@@ -97,7 +86,7 @@ class _TracingScreenState extends State<TracingScreen>
                     onContinue(); // continue to next letter
                   },
                   child: const Text("Continue"),
-                )
+                ),
               ],
             ),
           ),
@@ -116,35 +105,25 @@ class _TracingScreenState extends State<TracingScreen>
     );
 
     _scaleAnim = Tween<double>(begin: 1.0, end: 1.06).animate(
-      CurvedAnimation(
-        parent: _celebrateController,
-        curve: Curves.elasticOut,
-      ),
+      CurvedAnimation(parent: _celebrateController, curve: Curves.elasticOut),
     );
 
     _glowAnim = Tween<double>(begin: 0.0, end: 0.3).animate(
-      CurvedAnimation(
-        parent: _celebrateController,
-        curve: Curves.easeOut,
-      ),
+      CurvedAnimation(parent: _celebrateController, curve: Curves.easeOut),
     );
 
-    _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-4129659429509766/3143061906', // Production Ad Unit ID --- IGNORE ---
-      // adUnitId: 'ca-app-pub-3940256099942544/2934735716', // Test Ad Unit ID
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          print("Ad Loaded ✅");
-          setState(() => _isBannerReady = true);
-        },
-        onAdFailedToLoad: (ad, error) {
-          print("Ad Failed ❌: $error");
-          ad.dispose();
-        },
-      ),
-    )..load();
+    _bannerAd = AdHelper.createBannerAd(
+      onAdLoaded: (ad) {
+        print("Ad Loaded ✅");
+        setState(() => _isBannerReady = true);
+      },
+      onAdFailedToLoad: (ad, error) {
+        print("Ad Failed ❌: $error");
+        ad.dispose();
+      },
+    );
+
+    _bannerAd?.load();
   }
 
   @override
@@ -223,8 +202,9 @@ class _TracingScreenState extends State<TracingScreen>
 
                   // 🔤 Letter Badge
                   Container(
-                    padding:
-                        const EdgeInsets.all(12), // 👈 same as sound button
+                    padding: const EdgeInsets.all(
+                      12,
+                    ), // 👈 same as sound button
                     decoration: BoxDecoration(
                       color: color,
                       borderRadius: BorderRadius.circular(12), // 👈 same radius
@@ -300,7 +280,9 @@ class _TracingScreenState extends State<TracingScreen>
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.white,
                           side: BorderSide(
-                              color: color.withOpacity(0.4), width: 2),
+                            color: color.withOpacity(0.4),
+                            width: 2,
+                          ),
                           padding: const EdgeInsets.all(12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -342,8 +324,9 @@ class _TracingScreenState extends State<TracingScreen>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Color(0xFF6C5CE7)
-                                      .withOpacity(_glowAnim.value),
+                                  color: Color(
+                                    0xFF6C5CE7,
+                                  ).withOpacity(_glowAnim.value),
                                   blurRadius: 25,
                                   spreadRadius: 3,
                                 ),
@@ -376,7 +359,9 @@ class _TracingScreenState extends State<TracingScreen>
                       onPressed: _onClear,
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(
-                            color: Colors.grey.withOpacity(0.5), width: 2),
+                          color: Colors.grey.withOpacity(0.5),
+                          width: 2,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
