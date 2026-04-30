@@ -12,7 +12,7 @@ class AdHelper {
   // Toggle production vs test ads
   // ---------------------------------------------------------------
   static const bool _isProduction =
-      true; // Set to true for production, false for testing
+      false; // Set to true for production, false for testing
 
   // ---------------------------------------------------------------
   // Platform-specific Ad Unit ID

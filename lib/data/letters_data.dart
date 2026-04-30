@@ -4,7 +4,7 @@ const List<MyanmarLetter> myanmarLetters = [
   // Row 1 — Velar stops
   MyanmarLetter(
       character: 'က',
-      name: 'Ka',
+      name: 'ka',
       emoji: '🐱',
       colorValue: 0xFFFF6B6B,
       audioFile: 'ka.wav',
@@ -12,7 +12,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'Thursday'),
   MyanmarLetter(
       character: 'ခ',
-      name: 'Kha',
+      name: 'kha',
       emoji: '🐶',
       colorValue: 0xFFFF9F43,
       audioFile: 'kha.wav',
@@ -20,7 +20,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'basket'),
   MyanmarLetter(
       character: 'ဂ',
-      name: 'Ga',
+      name: 'ga',
       emoji: '🐸',
       colorValue: 0xFF54A0FF,
       audioFile: 'ga.wav',
@@ -28,7 +28,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'ginger'),
   MyanmarLetter(
       character: 'ဃ',
-      name: 'Gha',
+      name: 'ga',
       emoji: '🦋',
       colorValue: 0xFF5F27CD,
       audioFile: 'gha.wav',
@@ -36,7 +36,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'illness'),
   MyanmarLetter(
       character: 'င',
-      name: 'Nga',
+      name: 'nga',
       emoji: '🐠',
       colorValue: 0xFF00D2D3,
       audioFile: 'nga.wav',
@@ -46,7 +46,7 @@ const List<MyanmarLetter> myanmarLetters = [
   // Row 2 — Palatal stops
   MyanmarLetter(
       character: 'စ',
-      name: 'Sa',
+      name: 'sa',
       emoji: '🌸',
       colorValue: 0xFFFF6B9D,
       audioFile: 'sa.wav',
@@ -54,7 +54,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'book'),
   MyanmarLetter(
       character: 'ဆ',
-      name: 'Hsa',
+      name: 'hsa',
       emoji: '🐢',
       colorValue: 0xFF26DE81,
       audioFile: 'hsa.wav',
@@ -62,7 +62,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'harbour'),
   MyanmarLetter(
       character: 'ဇ',
-      name: 'Za',
+      name: 'za',
       emoji: '🦊',
       colorValue: 0xFFFD9644,
       audioFile: 'za.wav',
@@ -70,7 +70,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'story'),
   MyanmarLetter(
       character: 'ဈ',
-      name: 'Zha',
+      name: 'za',
       emoji: '🦅',
       colorValue: 0xFFE17055,
       audioFile: 'zha.wav',
@@ -78,7 +78,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'market'),
   MyanmarLetter(
       character: 'ည',
-      name: 'Nya',
+      name: 'nya',
       emoji: '🌙',
       colorValue: 0xFF6C5CE7,
       audioFile: 'nya.wav',
@@ -88,7 +88,7 @@ const List<MyanmarLetter> myanmarLetters = [
   // Row 3 — Alveolar stops
   MyanmarLetter(
       character: 'ဋ',
-      name: 'Ta',
+      name: 'ta',
       emoji: '🐯',
       colorValue: 0xFFFF7675,
       audioFile: 'ta1.wav',
@@ -96,7 +96,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'commentary'),
   MyanmarLetter(
       character: 'ဌ',
-      name: 'Hta',
+      name: 'hta',
       emoji: '🦁',
       colorValue: 0xFFFDAB10,
       audioFile: 'hta1.wav',
@@ -104,7 +104,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'department'),
   MyanmarLetter(
       character: 'ဍ',
-      name: 'Da',
+      name: 'da',
       emoji: '🐻',
       colorValue: 0xFF00CEC9,
       audioFile: 'da1.wav',
@@ -112,7 +112,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'small boat'),
   MyanmarLetter(
       character: 'ဎ',
-      name: 'Dha',
+      name: 'da',
       emoji: '🐼',
       colorValue: 0xFFA29BFE,
       audioFile: 'dha1.wav',
@@ -120,7 +120,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'annotated'),
   MyanmarLetter(
       character: 'ဏ',
-      name: 'Na',
+      name: 'na',
       emoji: '🦒',
       colorValue: 0xFFFF4DA6,
       audioFile: 'na1.wav',
@@ -130,7 +130,7 @@ const List<MyanmarLetter> myanmarLetters = [
   // Row 4 — Dental stops
   MyanmarLetter(
       character: 'တ',
-      name: 'Ta',
+      name: 'ta',
       emoji: '🐘',
       colorValue: 0xFF55EFC4,
       audioFile: 'ta2.wav',
@@ -138,7 +138,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'mountain'),
   MyanmarLetter(
       character: 'ထ',
-      name: 'Hta',
+      name: 'hta',
       emoji: '🦓',
       colorValue: 0xFFFF6348,
       audioFile: 'hta2.wav',
@@ -146,7 +146,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'rice'),
   MyanmarLetter(
       character: 'ဒ',
-      name: 'Da',
+      name: 'da',
       emoji: '🦏',
       colorValue: 0xFF7BED9F,
       audioFile: 'da2.wav',
@@ -154,7 +154,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'aunty'),
   MyanmarLetter(
       character: 'ဓ',
-      name: 'Dha',
+      name: 'da',
       emoji: '🐊',
       colorValue: 0xFF70A1FF,
       audioFile: 'dha2.wav',
@@ -162,7 +162,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'knife handle'),
   MyanmarLetter(
       character: 'န',
-      name: 'Na',
+      name: 'na',
       emoji: '🌻',
       colorValue: 0xFFFD79A8,
       audioFile: 'na2.wav',
@@ -172,7 +172,7 @@ const List<MyanmarLetter> myanmarLetters = [
   // Row 5 — Labial stops
   MyanmarLetter(
       character: 'ပ',
-      name: 'Pa',
+      name: 'pa',
       emoji: '🦜',
       colorValue: 0xFF6C5CE7,
       audioFile: 'pa.wav',
@@ -180,7 +180,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'flower'),
   MyanmarLetter(
       character: 'ဖ',
-      name: 'Pha',
+      name: 'pha',
       emoji: '🦚',
       colorValue: 0xFFE84393,
       audioFile: 'pha.wav',
@@ -188,7 +188,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'watermelon'),
   MyanmarLetter(
       character: 'ဗ',
-      name: 'Ba',
+      name: 'ba',
       emoji: '🦩',
       colorValue: 0xFF0984E3,
       audioFile: 'ba.wav',
@@ -196,7 +196,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'captain'),
   MyanmarLetter(
       character: 'ဘ',
-      name: 'Bha',
+      name: 'ba',
       emoji: '🦋',
       colorValue: 0xFF00B894,
       audioFile: 'bha.wav',
@@ -204,7 +204,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'temple'),
   MyanmarLetter(
       character: 'မ',
-      name: 'Ma',
+      name: 'ma',
       emoji: '🐵',
       colorValue: 0xFFA29BFE,
       audioFile: 'ma.wav',
@@ -214,7 +214,7 @@ const List<MyanmarLetter> myanmarLetters = [
   // Row 6 — Approximants
   MyanmarLetter(
       character: 'ယ',
-      name: 'Ya',
+      name: 'ya',
       emoji: '🌈',
       colorValue: 0xFF00B894,
       audioFile: 'ya.wav',
@@ -222,15 +222,15 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'vehicle'),
   MyanmarLetter(
       character: 'ရ',
-      name: 'Ra',
+      name: 'ya',
       emoji: '🦊',
       colorValue: 0xFFFF4757,
-      audioFile: 'ra.wav',
+      audioFile: 'ya.wav',
       myanmarWord: 'ရေ',
       wordMeaning: 'water'),
   MyanmarLetter(
       character: 'လ',
-      name: 'La',
+      name: 'la',
       emoji: '🌺',
       colorValue: 0xFF2ED573,
       audioFile: 'la.wav',
@@ -238,7 +238,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'road'),
   MyanmarLetter(
       character: 'ဝ',
-      name: 'Wa',
+      name: 'wa',
       emoji: '🐋',
       colorValue: 0xFF1E90FF,
       audioFile: 'wa.wav',
@@ -248,7 +248,7 @@ const List<MyanmarLetter> myanmarLetters = [
   // Row 7 — Fricatives & others
   MyanmarLetter(
       character: 'သ',
-      name: 'Tha',
+      name: 'tha',
       emoji: '🌟',
       colorValue: 0xFFFFD32A,
       audioFile: 'tha.wav',
@@ -256,7 +256,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'tree'),
   MyanmarLetter(
       character: 'ဟ',
-      name: 'Ha',
+      name: 'ha',
       emoji: '🦁',
       colorValue: 0xFFFF6B81,
       audioFile: 'ha.wav',
@@ -264,7 +264,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'vegetable'),
   MyanmarLetter(
       character: 'ဠ',
-      name: 'Lla',
+      name: 'la',
       emoji: '🌴',
       colorValue: 0xFF3AE374,
       audioFile: 'lla.wav',
@@ -272,7 +272,7 @@ const List<MyanmarLetter> myanmarLetters = [
       wordMeaning: 'wisdom'),
   MyanmarLetter(
       character: 'အ',
-      name: 'A',
+      name: 'a',
       emoji: '⭐',
       colorValue: 0xFFECCC68,
       audioFile: 'a.wav',

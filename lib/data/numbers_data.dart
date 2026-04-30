@@ -3,7 +3,7 @@ import '../models/letter.dart';
 const List<MyanmarLetter> myanmarNumbers = [
   MyanmarLetter(
       character: '၀',
-      name: 'Zero',
+      name: 'zero',
       emoji: '🥚',
       colorValue: 0xFF6C5CE7,
       audioFile: 'zero.wav',
@@ -11,7 +11,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'zero'),
   MyanmarLetter(
       character: '၁',
-      name: 'One',
+      name: 'one',
       emoji: '🌟',
       colorValue: 0xFFFF6B6B,
       audioFile: 'one.wav',
@@ -19,7 +19,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'one'),
   MyanmarLetter(
       character: '၂',
-      name: 'Two',
+      name: 'two',
       emoji: '🍎',
       colorValue: 0xFFFF9F43,
       audioFile: 'two.wav',
@@ -27,7 +27,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'two'),
   MyanmarLetter(
       character: '၃',
-      name: 'Three',
+      name: 'three',
       emoji: '🌸',
       colorValue: 0xFF26DE81,
       audioFile: 'three.wav',
@@ -35,7 +35,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'three'),
   MyanmarLetter(
       character: '၄',
-      name: 'Four',
+      name: 'four',
       emoji: '🦋',
       colorValue: 0xFF54A0FF,
       audioFile: 'four.wav',
@@ -43,7 +43,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'four'),
   MyanmarLetter(
       character: '၅',
-      name: 'Five',
+      name: 'five',
       emoji: '🐠',
       colorValue: 0xFFFF6B9D,
       audioFile: 'five.wav',
@@ -51,7 +51,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'five'),
   MyanmarLetter(
       character: '၆',
-      name: 'Six',
+      name: 'six',
       emoji: '🐢',
       colorValue: 0xFF00D2D3,
       audioFile: 'six.wav',
@@ -59,7 +59,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'six'),
   MyanmarLetter(
       character: '၇',
-      name: 'Seven',
+      name: 'seven',
       emoji: '🌈',
       colorValue: 0xFFFD9644,
       audioFile: 'seven.wav',
@@ -67,7 +67,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'seven'),
   MyanmarLetter(
       character: '၈',
-      name: 'Eight',
+      name: 'eight',
       emoji: '🐵',
       colorValue: 0xFFA29BFE,
       audioFile: 'eight.wav',
@@ -75,7 +75,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'eight'),
   MyanmarLetter(
       character: '၉',
-      name: 'Nine',
+      name: 'nine',
       emoji: '🌻',
       colorValue: 0xFFE84393,
       audioFile: 'nine.wav',
@@ -83,7 +83,7 @@ const List<MyanmarLetter> myanmarNumbers = [
       wordMeaning: 'nine'),
   MyanmarLetter(
       character: '၁၀',
-      name: 'Ten',
+      name: 'ten',
       emoji: '🎉',
       colorValue: 0xFF00B894,
       audioFile: 'ten.wav',
