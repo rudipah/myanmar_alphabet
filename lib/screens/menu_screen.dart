@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
+import 'flashcard_screen.dart'; // Import the flashcard screen
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -41,11 +42,21 @@ class _MenuScreenState extends State<MenuScreen>
     super.dispose();
   }
 
-  void _navigate(BuildContext context) {
+  // Navigation functions
+  void _navigateToHome(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => const HomeScreen(),
+      ),
+    );
+  }
+
+  void _navigateToFlashcards(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FlashcardScreen(),
       ),
     );
   }
@@ -125,41 +136,78 @@ class _MenuScreenState extends State<MenuScreen>
 
                     const SizedBox(height: 52),
 
-                    // ---- Start button ----
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(24),
-                        onTap: () => _navigate(context),
-                        child: Ink(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
+                    // ---- Buttons ----
+                    Column(
+                      children: [
+                        // Start Learning button
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
                             borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.12),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
+                            onTap: () => _navigateToHome(context),
+                            child: Ink(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.12),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text(
-                              '✏️  Start Learning',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF6C5CE7),
+                              child: const Center(
+                                child: Text(
+                                  '✏️  Start Learning',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF6C5CE7),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 20), // Space between buttons
+                        // Flashcard button
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(24),
+                            onTap: () => _navigateToFlashcards(context),
+                            child: Ink(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.12),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '📚  Flashcards',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF6C5CE7),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-
-                    const SizedBox(height: 52),
                   ],
                 ),
               ),
