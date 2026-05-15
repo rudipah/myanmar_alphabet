@@ -5,6 +5,7 @@ import '../widgets/tracing_canvas.dart';
 import '../services/sound_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../utils/ad_helper.dart';
+import 'package:confetti/confetti.dart';
 
 class TracingScreen extends StatefulWidget {
   final MyanmarLetter letter;
@@ -27,6 +28,7 @@ class _TracingScreenState extends State<TracingScreen>
   late AnimationController _celebrateController;
   late Animation<double> _scaleAnim;
   late Animation<double> _glowAnim;
+  late ConfettiController _confettiController; // Add this
 
   ButtonStyle _outlineButtonStyle(Color color) {
     return OutlinedButton.styleFrom(
@@ -169,6 +171,8 @@ class _TracingScreenState extends State<TracingScreen>
       CurvedAnimation(parent: _celebrateController, curve: Curves.easeOut),
     );
 
+    _confettiController = ConfettiController(duration: const Duration(seconds: 2)); // Fixed: removed initialValue
+
     _bannerAd = AdHelper.createBannerAd(
       onAdLoaded: (ad) {
         print("Ad Loaded ✅");
@@ -186,6 +190,7 @@ class _TracingScreenState extends State<TracingScreen>
   @override
   void dispose() {
     _bannerAd?.dispose();
+    _confettiController.dispose(); // Dispose
     super.dispose();
   }
 
@@ -211,6 +216,7 @@ class _TracingScreenState extends State<TracingScreen>
     HapticFeedback.mediumImpact();
 
     _celebrateController.forward(from: 0);
+    _confettiController.play(); // Trigger confetti 🎉
 
     _showSuccessPopup(() {
       _canvasKey.currentState?.clear();
@@ -373,45 +379,60 @@ class _TracingScreenState extends State<TracingScreen>
                   padding: const EdgeInsets.all(16),
                   child: AspectRatio(
                     aspectRatio: 1, // ✅ makes it square
-                    child: AnimatedBuilder(
-                      animation: _celebrateController,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: _scaleAnim.value,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFFDF5),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: Colors.grey.withOpacity(0.2),
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(
-                                    0xFF6C5CE7,
-                                  ).withOpacity(_glowAnim.value),
-                                  blurRadius: 25,
-                                  spreadRadius: 3,
+                    child: Stack(
+                      children: [
+                        AnimatedBuilder(
+                          animation: _celebrateController,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: _scaleAnim.value,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFFDF5),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Color(
+                                        0xFF6C5CE7,
+                                      ).withOpacity(_glowAnim.value),
+                                      blurRadius: 25,
+                                      spreadRadius: 3,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            clipBehavior: Clip.hardEdge,
-                            child: child,
+                                clipBehavior: Clip.hardEdge,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: TracingCanvas(
+                            key: _canvasKey,
+                            letter: widget.letter.character,
+                            letterColor: Color(widget.letter.colorValue),
+                            onDrawStart: _onDrawStart,
+                            onStrokeValidated: (success) {
+                              if (success) {
+                                HapticFeedback.lightImpact();
+                              }
+                            },
                           ),
-                        );
-                      },
-                      child: TracingCanvas(
-                        key: _canvasKey,
-                        letter: widget.letter.character,
-                        letterColor: Color(widget.letter.colorValue),
-                        onDrawStart: _onDrawStart,
-                        onStrokeValidated: (success) {
-                          if (success) {
-                            HapticFeedback.lightImpact();
-                          }
-                        },
-                      ),
+                        ),
+                        // 🎉 Confetti Layer
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: ConfettiWidget(
+                            confettiController: _confettiController,
+                            shouldLoop: false,
+                            maxBlastForce: 20,
+                            minBlastForce: 10,
+                            numberOfParticles: 20,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
