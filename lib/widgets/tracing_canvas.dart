@@ -115,6 +115,7 @@ class TracingCanvasState extends State<TracingCanvas> {
               letter: widget.letter,
               letterColor: widget.letterColor,
               showGuide: widget.showGuide,
+              validatedStrokes: _validatedStrokes, // Pass validated set
             ),
             child: const SizedBox.expand(),
           ),
@@ -133,6 +134,7 @@ class _TracingPainter extends CustomPainter {
   final String letter;
   final Color letterColor;
   final bool showGuide;
+  final Set<int> validatedStrokes; // To change color of correct strokes
 
   _TracingPainter({
     required this.strokes,
@@ -140,6 +142,7 @@ class _TracingPainter extends CustomPainter {
     required this.letter,
     required this.letterColor,
     required this.showGuide,
+    required this.validatedStrokes,
   });
 
   @override
@@ -177,24 +180,39 @@ class _TracingPainter extends CustomPainter {
     if (showGuide) {
       final guides = letterStrokes[letter];
       if (guides != null) {
-        for (final guide in guides) {
-          _drawStrokeGuide(canvas, size, guide);
+        for (int i = 0; i < guides.length; i++) {
+          final guide = guides[i];
+          // Only show guide if it hasn't been validated yet
+          if (!validatedStrokes.contains(i)) {
+            _drawStrokeGuide(canvas, size, guide);
+          }
         }
       }
     }
 
     // 5 ── User strokes
-    final strokePaint = Paint()
+    for (int i = 0; i < strokes.length; i++) {
+      final stroke = strokes[i];
+      // If stroke is validated, paint it with the letter color, 
+      // otherwise use a lighter version or the standard color.
+      final strokePaint = Paint()
+        ..color = validatedStrokes.contains(i) ? letterColor : letterColor.withOpacity(0.6)
+        ..strokeWidth = 14
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke;
+      
+      _drawUserStroke(canvas, stroke, strokePaint);
+    }
+    
+    // Current drawing stroke
+    final currentPaint = Paint()
       ..color = letterColor
       ..strokeWidth = 14
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
-
-    for (final stroke in strokes) {
-      _drawUserStroke(canvas, stroke, strokePaint);
-    }
-    _drawUserStroke(canvas, currentStroke, strokePaint);
+    _drawUserStroke(canvas, currentStroke, currentPaint);
   }
 
   // ── Convert normalised point → canvas pixels ──
