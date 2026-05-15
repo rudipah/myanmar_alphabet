@@ -3,11 +3,24 @@ import 'package:flutter/material.dart';
 import '../data/stroke_data.dart';
 import '../services/tracing_validator.dart';
 
+// ─────────────────────────────────────────────
+// Canvas Configuration
+// ─────────────────────────────────────────────
+class CanvasConfig {
+  static const double strokeWidth = 14.0;
+  static const double guideLineWidth = 3.0;
+  static const double dotSpacing = 28.0;
+  static const double dotRadius = 2.0;
+  static const double circleRadius = 14.0;
+  static final Color bgColor = Color(0xFFFFFDF5);
+  static final Color dotColor = Color(0xFFDDD5FF);
+}
+
 class TracingCanvas extends StatefulWidget {
   final String letter;
   final Color letterColor;
   final VoidCallback onDrawStart;
-  final Function(bool success) onStrokeValidated; // Added callback
+  final Function(bool success) onStrokeValidated;
   final bool showGuide;
 
   const TracingCanvas({
@@ -15,7 +28,7 @@ class TracingCanvas extends StatefulWidget {
     required this.letter,
     required this.letterColor,
     required this.onDrawStart,
-    required this.onStrokeValidated, // Required
+    required this.onStrokeValidated,
     this.showGuide = true,
   });
 
@@ -27,8 +40,8 @@ class TracingCanvasState extends State<TracingCanvas> {
   final List<List<Offset>> _strokes = [];
   List<Offset> _currentStroke = [];
   bool _hasDrawn = false;
-  Size? _canvasSize; // Track size for normalization
-  final Set<int> _validatedStrokes = {}; // Track which stroke indices are correct
+  Size? _canvasSize;
+  final Set<int> _validatedStrokes = {};
 
   void _onPanStart(DragStartDetails details) {
     setState(() {
@@ -49,16 +62,13 @@ class TracingCanvasState extends State<TracingCanvas> {
   void _onPanEnd(DragEndDetails details) {
     if (_currentStroke.isEmpty) return;
 
-    // --- VALIDATION LOGIC ---
     bool isValid = false;
     if (_canvasSize != null) {
-      // 1. Normalize current stroke to 0.0-1.0
       final normalizedStroke = _currentStroke.map((p) => Offset(
         p.dx / _canvasSize!.width,
         p.dy / _canvasSize!.height,
       )).toList();
 
-      // 2. Get guide for the current stroke index
       final guides = letterStrokes[widget.letter];
       if (guides != null && _strokes.length < guides.length) {
         final guide = guides[_strokes.length];
@@ -66,7 +76,6 @@ class TracingCanvasState extends State<TracingCanvas> {
           userStroke: normalizedStroke,
           guide: guide,
         );
-        
         if (isValid) {
           _validatedStrokes.add(_strokes.length);
         }
@@ -78,7 +87,6 @@ class TracingCanvasState extends State<TracingCanvas> {
       _currentStroke = [];
     });
 
-    // Notify parent of validation result
     widget.onStrokeValidated(isValid);
   }
 
@@ -115,7 +123,7 @@ class TracingCanvasState extends State<TracingCanvas> {
               letter: widget.letter,
               letterColor: widget.letterColor,
               showGuide: widget.showGuide,
-              validatedStrokes: _validatedStrokes, // Pass validated set
+              validatedStrokes: _validatedStrokes,
             ),
             child: const SizedBox.expand(),
           ),
@@ -125,16 +133,24 @@ class TracingCanvasState extends State<TracingCanvas> {
   }
 }
 
-// ─────────────────────────────────────────────
-// Painter
-// ─────────────────────────────────────────────
 class _TracingPainter extends CustomPainter {
   final List<List<Offset>> strokes;
   final List<Offset> currentStroke;
   final String letter;
   final Color letterColor;
   final bool showGuide;
-  final Set<int> validatedStrokes; // To change color of correct strokes
+  final Set<int> validatedStrokes;
+
+  // Pre-allocated paints to avoid GC pressure
+  final Paint _bgPaint = Paint();
+  final Paint _dotPaint = Paint();
+  final Paint _guidePaint = Paint()
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke;
+  final Paint _userPaint = Paint()
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round
+    ..style = PaintingStyle.stroke;
 
   _TracingPainter({
     required this.strokes,
@@ -147,21 +163,16 @@ class _TracingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1 ── Background
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..color = const Color(0xFFFFFDF5),
-    );
+    _bgPaint.color = CanvasConfig.bgColor;
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), _bgPaint);
 
-    // 2 ── Dot grid
-    final dotPaint = Paint()..color = const Color(0xFFDDD5FF);
-    for (double x = 20; x < size.width; x += 28) {
-      for (double y = 20; y < size.height; y += 28) {
-        canvas.drawCircle(Offset(x, y), 2, dotPaint);
+    _dotPaint.color = CanvasConfig.dotColor;
+    for (double x = 20; x < size.width; x += CanvasConfig.dotSpacing) {
+      for (double y = 20; y < size.height; y += CanvasConfig.dotSpacing) {
+        canvas.drawCircle(Offset(x, y), CanvasConfig.dotRadius, _dotPaint);
       }
     }
 
-    // 3 ── Ghost letter (very faint)
     final short = size.width < size.height ? size.width : size.height;
     final ghostStyle = TextStyle(
       fontFamily: 'Pyidaungsu',
@@ -173,79 +184,45 @@ class _TracingPainter extends CustomPainter {
       text: TextSpan(text: letter, style: ghostStyle),
       textDirection: TextDirection.ltr,
     )..layout();
-    tp.paint(canvas,
-        Offset((size.width - tp.width) / 2, (size.height - tp.height) / 2));
+    tp.paint(canvas, Offset((size.width - tp.width) / 2, (size.height - tp.height) / 2));
 
-    // 4 ── Stroke guides
     if (showGuide) {
       final guides = letterStrokes[letter];
       if (guides != null) {
         for (int i = 0; i < guides.length; i++) {
-          final guide = guides[i];
-          // Only show guide if it hasn't been validated yet
           if (!validatedStrokes.contains(i)) {
-            _drawStrokeGuide(canvas, size, guide);
+            _drawStrokeGuide(canvas, size, guides[i]);
           }
         }
       }
     }
 
-    // 5 ── User strokes
     for (int i = 0; i < strokes.length; i++) {
-      final stroke = strokes[i];
-      // If stroke is validated, paint it with the letter color, 
-      // otherwise use a lighter version or the standard color.
-      final strokePaint = Paint()
-        ..color = validatedStrokes.contains(i) ? letterColor : letterColor.withOpacity(0.6)
-        ..strokeWidth = 14
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..style = PaintingStyle.stroke;
-      
-      _drawUserStroke(canvas, stroke, strokePaint);
+      _userPaint.color = validatedStrokes.contains(i) ? letterColor : letterColor.withOpacity(0.6);
+      _userPaint.strokeWidth = CanvasConfig.strokeWidth;
+      _drawUserStroke(canvas, strokes[i], _userPaint);
     }
     
-    // Current drawing stroke
-    final currentPaint = Paint()
-      ..color = letterColor
-      ..strokeWidth = 14
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..style = PaintingStyle.stroke;
-    _drawUserStroke(canvas, currentStroke, currentPaint);
+    _userPaint.color = letterColor;
+    _userPaint.strokeWidth = CanvasConfig.strokeWidth;
+    _drawUserStroke(canvas, currentStroke, _userPaint);
   }
 
-  // ── Convert normalised point → canvas pixels ──
-  Offset _px(Offset norm, Size size) =>
-      Offset(norm.dx * size.width, norm.dy * size.height);
+  Offset _px(Offset norm, Size size) => Offset(norm.dx * size.width, norm.dy * size.height);
 
-  // ── Draw one stroke guide ─────────────────────
   void _drawStrokeGuide(Canvas canvas, Size size, StrokeGuide guide) {
     if (guide.points.length < 2) return;
-
     final pts = guide.points.map((p) => _px(p, size)).toList();
 
-    // Dashed path
-    _drawDashed(
-        canvas,
-        pts,
-        Paint()
-          ..color = Colors.black.withOpacity(0.28)
-          ..strokeWidth = 3.0
-          ..strokeCap = StrokeCap.round
-          ..style = PaintingStyle.stroke);
+    _guidePaint.color = Colors.black.withOpacity(0.28);
+    _guidePaint.strokeWidth = CanvasConfig.guideLineWidth;
+    _drawDashed(canvas, pts, _guidePaint);
 
-    // Arrow at end
-    _drawArrow(
-        canvas, pts[pts.length - 2], pts.last, Colors.black.withOpacity(0.50));
-
-    // Numbered circle at start
+    _drawArrow(canvas, pts[pts.length - 2], pts.last, Colors.black.withOpacity(0.50));
     _drawNumberCircle(canvas, pts.first, guide.label, letterColor);
   }
 
-  // ── Dashed polyline ───────────────────────────
-  void _drawDashed(Canvas canvas, List<Offset> pts, Paint paint,
-      {double dash = 9, double gap = 6}) {
+  void _drawDashed(Canvas canvas, List<Offset> pts, Paint paint, {double dash = 9, double gap = 6}) {
     bool drawing = true;
     double rem = 0;
     for (int i = 0; i < pts.length - 1; i++) {
@@ -259,23 +236,12 @@ class _TracingPainter extends CustomPainter {
         final step = drawing ? (dash - rem) : (gap - rem);
         final next = traveled + step;
         if (next >= len) {
-          if (drawing) {
-            canvas.drawLine(
-              Offset(a.dx + ux * traveled, a.dy + uy * traveled),
-              b,
-              paint,
-            );
-          }
+          if (drawing) canvas.drawLine(Offset(a.dx + ux * traveled, a.dy + uy * traveled), b, paint);
           rem = len - traveled;
           traveled = len;
         } else {
-          final ex = a.dx + ux * next, ey = a.dy + uy * next;
           if (drawing) {
-            canvas.drawLine(
-              Offset(a.dx + ux * traveled, a.dy + uy * traveled),
-              Offset(ex, ey),
-              paint,
-            );
+            canvas.drawLine(Offset(a.dx + ux * traveled, a.dy + uy * traveled), Offset(a.dx + ux * next, a.dy + uy * next), paint);
           }
           traveled = next;
           rem = 0;
@@ -285,7 +251,6 @@ class _TracingPainter extends CustomPainter {
     }
   }
 
-  // ── Arrowhead ─────────────────────────────────
   void _drawArrow(Canvas canvas, Offset from, Offset to, Color color) {
     const sz = 13.0;
     final angle = atan2(to.dy - from.dy, to.dx - from.dx);
@@ -294,53 +259,30 @@ class _TracingPainter extends CustomPainter {
       ..lineTo(to.dx - sz * cos(angle - 0.42), to.dy - sz * sin(angle - 0.42))
       ..lineTo(to.dx - sz * cos(angle + 0.42), to.dy - sz * sin(angle + 0.42))
       ..close();
-    canvas.drawPath(
-        path,
-        Paint()
-          ..color = color
-          ..style = PaintingStyle.fill);
+    canvas.drawPath(path, Paint()..color = color..style = PaintingStyle.fill);
   }
 
-  // ── Numbered start circle ─────────────────────
-  void _drawNumberCircle(
-      Canvas canvas, Offset center, String label, Color color) {
-    const r = 14.0;
-    // Filled circle
+  void _drawNumberCircle(Canvas canvas, Offset center, String label, Color color) {
+    const r = CanvasConfig.circleRadius;
     canvas.drawCircle(center, r, Paint()..color = color);
-    // White border
-    canvas.drawCircle(
-        center,
-        r,
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5);
-    // Number text
+    canvas.drawCircle(center, r, Paint()..color = Colors.white..style = PaintingStyle.stroke..strokeWidth = 2.5);
     final tp = TextPainter(
-      text: TextSpan(
-        text: label,
-        style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.w900,
-            fontFamily: 'Arial'),
-      ),
+      text: TextSpan(text: label, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, fontFamily: 'Arial')),
       textDirection: TextDirection.ltr,
     )..layout();
-    tp.paint(
-        canvas, Offset(center.dx - tp.width / 2, center.dy - tp.height / 2));
+    tp.paint(canvas, Offset(center.dx - tp.width / 2, center.dy - tp.height / 2));
   }
 
-  // ── User freehand stroke ──────────────────────
   void _drawUserStroke(Canvas canvas, List<Offset> pts, Paint paint) {
     if (pts.length < 2) return;
     final path = Path()..moveTo(pts[0].dx, pts[0].dy);
-    for (int i = 1; i < pts.length; i++) {
-      path.lineTo(pts[i].dx, pts[i].dy);
-    }
+    for (int i = 1; i < pts.length; i++) path.lineTo(pts[i].dx, pts[i].dy);
     canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(_TracingPainter old) => true;
+  bool shouldRepaint(_TracingPainter old) => 
+      old.strokes != strokes || 
+      old.currentStroke != currentStroke || 
+      old.validatedStrokes != validatedStrokes;
 }
