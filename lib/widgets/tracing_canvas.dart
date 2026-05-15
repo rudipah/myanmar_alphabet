@@ -1,11 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../data/stroke_data.dart';
+import '../services/tracing_validator.dart';
 
 class TracingCanvas extends StatefulWidget {
   final String letter;
   final Color letterColor;
   final VoidCallback onDrawStart;
+  final Function(bool success) onStrokeValidated; // Added callback
   final bool showGuide;
 
   const TracingCanvas({
@@ -13,6 +15,7 @@ class TracingCanvas extends StatefulWidget {
     required this.letter,
     required this.letterColor,
     required this.onDrawStart,
+    required this.onStrokeValidated, // Required
     this.showGuide = true,
   });
 
@@ -24,6 +27,8 @@ class TracingCanvasState extends State<TracingCanvas> {
   final List<List<Offset>> _strokes = [];
   List<Offset> _currentStroke = [];
   bool _hasDrawn = false;
+  Size? _canvasSize; // Track size for normalization
+  final Set<int> _validatedStrokes = {}; // Track which stroke indices are correct
 
   void _onPanStart(DragStartDetails details) {
     setState(() {
@@ -42,12 +47,45 @@ class TracingCanvasState extends State<TracingCanvas> {
   }
 
   void _onPanEnd(DragEndDetails details) {
-    setState(() {
-      if (_currentStroke.isNotEmpty) {
-        _strokes.add(List.from(_currentStroke));
-        _currentStroke = [];
+    if (_currentStroke.isEmpty) return;
+
+    // --- VALIDATION LOGIC ---
+    bool isValid = false;
+    if (_canvasSize != null) {
+      // 1. Normalize current stroke to 0.0-1.0
+      final normalizedStroke = _currentStroke.map((p) => Offset(
+        p.dx / _canvasSize!.width,
+        p.dy / _canvasSize!.height,
+      )).toList();
+
+      // 2. Get guide for the current stroke index
+      final guides = letterStrokes[widget.letter];
+      if (guides != null && _strokes.length < guides.length) {
+        final guide = guides[_strokes.length];
+        isValid = TracingValidator.validateStroke(
+          userStroke: normalizedStroke,
+          guide: guide,
+        );
+        
+        if (isValid) {
+          _validatedStrokes.add(_strokes.length);
+        }
       }
+    }
+
+    setState(() {
+      _strokes.add(List.from(_currentStroke));
+      _currentStroke = [];
     });
+
+    // Notify parent of validation result
+    widget.onStrokeValidated(isValid);
+  }
+
+  bool isFullyValidated() {
+    final guides = letterStrokes[widget.letter];
+    if (guides == null) return false;
+    return _validatedStrokes.length >= guides.length;
   }
 
   void clear() {
@@ -55,6 +93,7 @@ class TracingCanvasState extends State<TracingCanvas> {
       _strokes.clear();
       _currentStroke = [];
       _hasDrawn = false;
+      _validatedStrokes.clear();
     });
   }
 
@@ -62,20 +101,25 @@ class TracingCanvasState extends State<TracingCanvas> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanStart: _onPanStart,
-      onPanUpdate: _onPanUpdate,
-      onPanEnd: _onPanEnd,
-      child: CustomPaint(
-        painter: _TracingPainter(
-          strokes: _strokes,
-          currentStroke: _currentStroke,
-          letter: widget.letter,
-          letterColor: widget.letterColor,
-          showGuide: widget.showGuide,
-        ),
-        child: const SizedBox.expand(),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
+        return GestureDetector(
+          onPanStart: _onPanStart,
+          onPanUpdate: _onPanUpdate,
+          onPanEnd: _onPanEnd,
+          child: CustomPaint(
+            painter: _TracingPainter(
+              strokes: _strokes,
+              currentStroke: _currentStroke,
+              letter: widget.letter,
+              letterColor: widget.letterColor,
+              showGuide: widget.showGuide,
+            ),
+            child: const SizedBox.expand(),
+          ),
+        );
+      },
     );
   }
 }

@@ -37,6 +37,63 @@ class _TracingScreenState extends State<TracingScreen>
     );
   }
 
+  void _showErrorPopup() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.elasticOut,
+          builder: (context, value, child) {
+            return Transform.scale(scale: value, child: child);
+          },
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.redAccent,
+                  size: 60,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "Not quite right!",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Try to follow the guides more closely!",
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Try Again", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showSuccessPopup(VoidCallback onContinue) {
     showDialog(
       context: context,
@@ -143,6 +200,13 @@ class _TracingScreenState extends State<TracingScreen>
 
   void _onDone() {
     if (!_hasDrawn) return;
+
+    // --- VALIDATION CHECK ---
+    final canvasState = _canvasKey.currentState;
+    if (canvasState != null && !canvasState.isFullyValidated()) {
+      _showErrorPopup();
+      return;
+    }
 
     HapticFeedback.mediumImpact();
 
@@ -342,6 +406,11 @@ class _TracingScreenState extends State<TracingScreen>
                         letter: widget.letter.character,
                         letterColor: Color(widget.letter.colorValue),
                         onDrawStart: _onDrawStart,
+                        onStrokeValidated: (success) {
+                          if (success) {
+                            HapticFeedback.lightImpact();
+                          }
+                        },
                       ),
                     ),
                   ),
