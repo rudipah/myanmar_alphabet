@@ -4,6 +4,7 @@ class Flashcard {
   final String image;
   final String audio;
   final String description;
+  final String? word;
 
   Flashcard({
     required this.letter,
@@ -11,6 +12,7 @@ class Flashcard {
     required this.image,
     required this.audio,
     required this.description,
+    this.word,
   });
 }
 
@@ -21,31 +23,36 @@ final List<Flashcard> flashcards = [
       pronunciation: 'က (ka)',
       image: 'assets/images/ka.png',
       audio: 'ka.wav',
-      description: 'Ka'),
+      description: 'Baby',
+      word: 'ကလေး'),
   Flashcard(
       letter: 'ခ',
       pronunciation: 'ခ (kha)',
       image: 'assets/images/kha.png',
       audio: 'kha.wav',
-      description: 'Kha'),
+      description: 'Pencil',
+      word: 'ခဲတံ'),
   Flashcard(
       letter: 'ဂ',
       pronunciation: 'ဂ (ga)',
-      image: 'assets/images/ga.png',
-      audio: 'ga.wav',
-      description: 'Ga'),
-  Flashcard(
-      letter: 'ဃ',
-      pronunciation: 'ဃ (gha)',
       image: 'assets/images/gha.png',
-      audio: 'gha.wav',
-      description: 'Gha'),
+      audio: 'ga.wav',
+      description: 'Crab',
+      word: 'ဂဏန်း'),
+  // Flashcard(
+  //     letter: 'ဃ',
+  //     pronunciation: 'ဃ (gha)',
+  //     image: 'assets/images/gha.png',
+  //     audio: 'gha.wav',
+  //     description: 'Gha',
+  //     word: 'ဃီဝါ'),
   Flashcard(
       letter: 'င',
       pronunciation: 'င (nga)',
       image: 'assets/images/nga.png',
       audio: 'nga.wav',
-      description: 'Nga'),
+      description: 'Fish',
+      word: 'ငါး'),
 
   // ================= SA GROUP =================
   Flashcard(
@@ -53,95 +60,110 @@ final List<Flashcard> flashcards = [
       pronunciation: 'စ (sa)',
       image: 'assets/images/sa.png',
       audio: 'sa.wav',
-      description: 'Sa'),
+      description: 'Grain',
+      word: 'စပါး'),
   Flashcard(
       letter: 'ဆ',
       pronunciation: 'ဆ (hsa)',
       image: 'assets/images/hsa.png',
       audio: 'hsa.wav',
-      description: 'Hsa'),
+      description: 'Elephant',
+      word: 'ဆင်'),
   Flashcard(
       letter: 'ဇ',
       pronunciation: 'ဇ (za)',
       image: 'assets/images/za.png',
       audio: 'za.wav',
-      description: 'Za'),
+      description: 'Owl',
+      word: 'ဇီးကွက်'),
   Flashcard(
       letter: 'ဈ',
       pronunciation: 'ဈ (zha)',
       image: 'assets/images/zha.png',
       audio: 'zha.wav',
-      description: 'Zha'),
+      description: 'Retailer',
+      word: 'စျေးသည်'),
   Flashcard(
       letter: 'ည',
       pronunciation: 'ည (nya)',
       image: 'assets/images/nya.png',
       audio: 'nya.wav',
-      description: 'Nya'),
+      description: 'Night',
+      word: 'ညအခါ'),
 
   // ================= TA GROUP =================
-  Flashcard(
-      letter: 'ဋ',
-      pronunciation: 'ဋ (ta)',
-      image: 'assets/images/ta.png',
-      audio: 'ta.wav',
-      description: 'Ta'),
-  Flashcard(
-      letter: 'ဌ',
-      pronunciation: 'ဌ (tha)',
-      image: 'assets/images/tha.png',
-      audio: 'tha.wav',
-      description: 'Tha'),
-  Flashcard(
-      letter: 'ဍ',
-      pronunciation: 'ဍ (da)',
-      image: 'assets/images/da.png',
-      audio: 'da.wav',
-      description: 'Da'),
-  Flashcard(
-      letter: 'ဎ',
-      pronunciation: 'ဎ (dha)',
-      image: 'assets/images/dha.png',
-      audio: 'dha.wav',
-      description: 'Dha'),
-  Flashcard(
-      letter: 'ဏ',
-      pronunciation: 'ဏ (na)',
-      image: 'assets/images/na1.png',
-      audio: 'na1.wav',
-      description: 'Na'),
+  // Flashcard(
+  //     letter: 'ဋ',
+  //     pronunciation: 'ဋ (ta)',
+  //     image: 'assets/images/ta.png',
+  //     audio: 'ta.wav',
+  //     description: 'Ta',
+  //     word: 'ဋ္ဌာန'),
+  // Flashcard(
+  //     letter: 'ဌ',
+  //     pronunciation: 'ဌ (tha)',
+  //     image: 'assets/images/tha.png',
+  //     audio: 'tha.wav',
+  //     description: 'Tha',
+  //     word: 'ဌာန'),
+  // Flashcard(
+  //     letter: 'ဍ',
+  //     pronunciation: 'ဍ (da)',
+  //     image: 'assets/images/da.png',
+  //     audio: 'da.wav',
+  //     description: 'Da',
+  //     word: 'ဍာ'),
+  // Flashcard(
+  //     letter: 'ဎ',
+  //     pronunciation: 'ဎ (dha)',
+  //     image: 'assets/images/dha.png',
+  //     audio: 'dha.wav',
+  //     description: 'Dha',
+  //     word: 'ဎာ'),
+  // Flashcard(
+  //     letter: 'ဏ',
+  //     pronunciation: 'ဏ (na)',
+  //     image: 'assets/images/na1.png',
+  //     audio: 'na1.wav',
+  //     description: 'Na',
+  //     word: 'ဏ'),
 
   // ================= TA (DENTAL) =================
   Flashcard(
       letter: 'တ',
       pronunciation: 'တ (ta)',
-      image: 'assets/images/ta2.png',
+      image: 'assets/images/ta.png',
       audio: 'ta2.wav',
-      description: 'Ta'),
+      description: 'Hammer',
+      word: 'တူ'),
   Flashcard(
       letter: 'ထ',
       pronunciation: 'ထ (hta)',
       image: 'assets/images/hta.png',
-      audio: 'hta.wav',
-      description: 'Hta'),
+      audio: 'hta1.wav',
+      description: 'Umbrella',
+      word: 'ထီး'),
   Flashcard(
       letter: 'ဒ',
       pronunciation: 'ဒ (da)',
       image: 'assets/images/da2.png',
       audio: 'da2.wav',
-      description: 'Da'),
+      description: 'Peacock',
+      word: 'ဒေါင်း'),
   Flashcard(
       letter: 'ဓ',
       pronunciation: 'ဓ (dha)',
       image: 'assets/images/dha2.png',
       audio: 'dha2.wav',
-      description: 'Dha'),
+      description: 'Knife',
+      word: 'ဓား'),
   Flashcard(
       letter: 'န',
       pronunciation: 'န (na)',
       image: 'assets/images/na.png',
-      audio: 'na.wav',
-      description: 'Na'),
+      audio: 'na1.wav',
+      description: 'Cow',
+      word: 'နွား'),
 
   // ================= PA GROUP =================
   Flashcard(
@@ -149,31 +171,36 @@ final List<Flashcard> flashcards = [
       pronunciation: 'ပ (pa)',
       image: 'assets/images/pa.png',
       audio: 'pa.wav',
-      description: 'Pa'),
+      description: 'Apple',
+      word: 'ပန်းသီး'),
   Flashcard(
       letter: 'ဖ',
       pronunciation: 'ဖ (pha)',
       image: 'assets/images/pha.png',
       audio: 'pha.wav',
-      description: 'Pha'),
+      description: 'Watermelon',
+      word: 'ဖရဲသီး'),
   Flashcard(
       letter: 'ဗ',
       pronunciation: 'ဗ (ba)',
       image: 'assets/images/ba.png',
       audio: 'ba.wav',
-      description: 'Ba'),
+      description: 'Drum',
+      word: 'ဗုံ'),
   Flashcard(
       letter: 'ဘ',
       pronunciation: 'ဘ (bha)',
       image: 'assets/images/bha.png',
       audio: 'bha.wav',
-      description: 'Bha'),
+      description: 'Duck Egg',
+      word: 'ဘဲဥ'),
   Flashcard(
       letter: 'မ',
       pronunciation: 'မ (ma)',
       image: 'assets/images/ma.png',
       audio: 'ma.wav',
-      description: 'Ma'),
+      description: 'Horse',
+      word: 'မြင်း'),
 
   // ================= YA GROUP =================
   Flashcard(
@@ -181,31 +208,36 @@ final List<Flashcard> flashcards = [
       pronunciation: 'ယ (ya)',
       image: 'assets/images/ya.png',
       audio: 'ya.wav',
-      description: 'Ya'),
+      description: 'Rabbit',
+      word: 'ယုန်'),
   Flashcard(
       letter: 'ရ',
       pronunciation: 'ရ (ya/ra)',
       image: 'assets/images/ra.png',
-      audio: 'ra.wav',
-      description: 'Ra'),
+      audio: 'ya.wav',
+      description: 'bucket',
+      word: 'ရေပုံး'),
   Flashcard(
       letter: 'လ',
       pronunciation: 'လ (la)',
       image: 'assets/images/la.png',
       audio: 'la.wav',
-      description: 'La'),
+      description: 'Butterfly',
+      word: 'လိပ်ပြာ'),
   Flashcard(
       letter: 'ဝ',
       pronunciation: 'ဝ (wa)',
       image: 'assets/images/wa.png',
       audio: 'wa.wav',
-      description: 'Wa'),
+      description: 'Bamboo',
+      word: 'ဝါးပင်'),
   Flashcard(
       letter: 'သ',
       pronunciation: 'သ (tha)',
       image: 'assets/images/tha2.png',
-      audio: 'tha2.wav',
-      description: 'Tha'),
+      audio: 'tha.wav',
+      description: 'Candy',
+      word: 'သကြားလုံး'),
 
   // ================= HA GROUP =================
   Flashcard(
@@ -213,17 +245,20 @@ final List<Flashcard> flashcards = [
       pronunciation: 'ဟ (ha)',
       image: 'assets/images/ha.png',
       audio: 'ha.wav',
-      description: 'Ha'),
-  Flashcard(
-      letter: 'ဠ',
-      pronunciation: 'ဠ (la)',
-      image: 'assets/images/lla.png',
-      audio: 'lla.wav',
-      description: 'La'),
+      description: 'Vegetable',
+      word: 'ဟင်းသီးဟင်းရွက်'),
+  // Flashcard(
+  //     letter: 'ဠ',
+  //     pronunciation: 'ဠ (la)',
+  //     image: 'assets/images/lla.png',
+  //     audio: 'lla.wav',
+  //     description: 'La',
+  //     word: 'ဠ'),
   Flashcard(
       letter: 'အ',
       pronunciation: 'အ (a)',
       image: 'assets/images/a.png',
       audio: 'a.wav',
-      description: 'A'),
+      description: 'House',
+      word: 'အိမ်'),
 ];
