@@ -29,14 +29,10 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
     });
   }
 
-  void _flipCard() async {
+  void _flipCard() {
     setState(() {
       isFlipped = !isFlipped;
     });
-
-    if (isFlipped) {
-      await SoundService.playLetter(currentCard.audio);
-    }
   }
 
   void _repeatAudio() async {
