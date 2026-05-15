@@ -23,8 +23,10 @@ class _TracingScreenState extends State<TracingScreen>
 
   bool _hasDrawn = false;
   bool _isSpeaking = false;
+  /*
   BannerAd? _bannerAd;
   bool _isBannerReady = false;
+  */
   late AnimationController _celebrateController;
   late Animation<double> _scaleAnim;
   late Animation<double> _glowAnim;
@@ -173,6 +175,7 @@ class _TracingScreenState extends State<TracingScreen>
 
     _confettiController = ConfettiController(duration: const Duration(seconds: 2)); // Fixed: removed initialValue
 
+    /*
     _bannerAd = AdHelper.createBannerAd(
       onAdLoaded: (ad) {
         print("Ad Loaded ✅");
@@ -185,11 +188,12 @@ class _TracingScreenState extends State<TracingScreen>
     );
 
     _bannerAd?.load();
+    */
   }
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
+    /* _bannerAd?.dispose(); */
     _confettiController.dispose(); // Dispose
     super.dispose();
   }
@@ -496,12 +500,14 @@ class _TracingScreenState extends State<TracingScreen>
                 ],
               ),
             ),
+            /*
             if (_isBannerReady && _bannerAd != null)
               SizedBox(
                 width: _bannerAd!.size.width.toDouble(),
                 height: _bannerAd!.size.height.toDouble(),
                 child: AdWidget(ad: _bannerAd!),
               ),
+            */
           ],
         ),
       ),

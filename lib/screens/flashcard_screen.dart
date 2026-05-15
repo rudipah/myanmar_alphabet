@@ -42,65 +42,76 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Flashcards",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFF2D2D4E),
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
       backgroundColor: const Color(0xFFF0EEFF),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: GestureDetector(
-                onHorizontalDragEnd: (detail) {
-                  if (detail.primaryVelocity! < 0) {
-                    _nextCard(); // Swipe Left -> Next
-                  } else if (detail.primaryVelocity! > 0) {
-                    _prevCard(); // Swipe Right -> Prev
-                  }
-                },
-                onTap: _flipCard,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(
-                        scale: Tween<double>(begin: 0.95, end: 1.0)
-                            .animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: isFlipped
-                      ? _buildBack(currentCard)
-                      : _buildFront(currentCard),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ---- Header (Matching HomeScreen) ----
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _buildNavButton(Icons.arrow_back_ios_rounded,
+                      () => Navigator.pop(context)),
+                  const SizedBox(width: 12),
+                  const Text(
+                    "Flashcards",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF2D2D4E),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              Expanded(
+                child: Center(
+                  child: GestureDetector(
+                    onHorizontalDragEnd: (detail) {
+                      if (detail.primaryVelocity! < 0) {
+                        _nextCard(); // Swipe Left -> Next
+                      } else if (detail.primaryVelocity! > 0) {
+                        _prevCard(); // Swipe Right -> Prev
+                      }
+                    },
+                    onTap: _flipCard,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: ScaleTransition(
+                            scale: Tween<double>(begin: 0.95, end: 1.0)
+                                .animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: isFlipped
+                          ? _buildBack(currentCard)
+                          : _buildFront(currentCard),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 30),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildNavButton(Icons.arrow_back, _prevCard),
+                    const SizedBox(width: 40),
+                    _buildNavButton(Icons.arrow_forward, _nextCard),
+                  ],
+                ),
+              )
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 30),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildNavButton(Icons.arrow_back, _prevCard),
-                const SizedBox(width: 40),
-                _buildNavButton(Icons.arrow_forward, _nextCard),
-              ],
-            ),
-          )
-        ],
+        ),
       ),
     );
   }
@@ -109,7 +120,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
