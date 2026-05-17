@@ -190,7 +190,7 @@ final List<Flashcard> flashcards = [
       word: 'ယုန်'),
   Flashcard(
       letter: 'ရ',
-      pronunciation: 'ရ (ya/ra)',
+      pronunciation: 'ရ (ya)',
       image: 'assets/images/ra.png',
       audio: 'ya1.ogg',
       descriptionAudio: 'ya1_word.ogg',
