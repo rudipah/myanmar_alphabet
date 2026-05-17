@@ -35,8 +35,12 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
     });
   }
 
-  void _repeatAudio() async {
+  void _repeatLetterAudio() async {
     await SoundService.playLetter(currentCard.audio);
+  }
+
+  void _repeatDescriptionAudio() async {
+    await SoundService.playLetter(currentCard.descriptionAudio);
   }
 
   @override
@@ -53,8 +57,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _buildNavButton(Icons.arrow_back_ios_rounded,
-                      () => Navigator.pop(context)),
+                  _buildNavButton(Icons.arrow_back_ios_rounded, () => Navigator.pop(context)),
                   const SizedBox(width: 12),
                   const Text(
                     "Flashcards",
@@ -67,7 +70,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-
+              
               Expanded(
                 child: Center(
                   child: GestureDetector(
@@ -142,8 +145,8 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
-        width: 340, // Wider, more rectangular
-        height: 260, // Increased height to accommodate new label on back
+        width: 340,
+        height: 320,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -172,8 +175,8 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
-        width: 340, // Matches front
-        height: 260, // Matches front
+        width: 340,
+        height: 320,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -196,25 +199,35 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                 const SizedBox(width: 10),
                 IconButton(
                   icon: const Icon(Icons.volume_up, color: Color(0xFF6C5CE7)),
-                  onPressed: _repeatAudio,
+                  onPressed: _repeatLetterAudio,
                 ),
               ],
             ),
             const SizedBox(height: 15),
             Image.asset(
               card.image,
-              height: 80,
+              height: 100,
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 8),
-            Text(
-              card.word ?? '',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'Pyidaungsu',
-                color: Color(0xFF2D2D4E),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  card.word ?? '',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Pyidaungsu',
+                    color: Color(0xFF2D2D4E),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.volume_up, color: Color(0xFF6C5CE7)),
+                  onPressed: _repeatDescriptionAudio,
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
