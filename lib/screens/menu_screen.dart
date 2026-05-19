@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'flashcard_screen.dart'; // Import the flashcard screen
+import 'quiz_screen.dart'; // Import the quiz screen
+import 'matching_game_screen.dart'; // Import the matching game screen
+// import 'progress_screen.dart'; // Import the progress screen
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -56,10 +59,37 @@ class _MenuScreenState extends State<MenuScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => FlashcardScreen(),
+        builder: (_) => const FlashcardScreen(),
       ),
     );
   }
+
+  void _navigateToQuiz(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const QuizScreen(),
+      ),
+    );
+  }
+
+  void _navigateToMatchingGame(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const MatchingGameScreen(),
+      ),
+    );
+  }
+
+  // void _navigateToProgress(BuildContext context) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (_) => const ProgressScreen(),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -206,6 +236,110 @@ class _MenuScreenState extends State<MenuScreen>
                             ),
                           ),
                         ),
+                        const SizedBox(height: 20), // Space between buttons
+                        // Quiz button
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(24),
+                            onTap: () => _navigateToQuiz(context),
+                            child: Ink(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.12),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '🎯  Quiz Time',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF6C5CE7),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20), // Space between buttons
+                        // Matching Game button
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(24),
+                            onTap: () => _navigateToMatchingGame(context),
+                            child: Ink(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.12),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '🧩  Matching Game',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF6C5CE7),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20), // Space between buttons
+                        /* 
+                        // Progress button
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(24),
+                            onTap: () => _navigateToProgress(context),
+                            child: Ink(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.12),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '📊  My Progress',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF6C5CE7),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        */
                       ],
                     ),
                   ],
