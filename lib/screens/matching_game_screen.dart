@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:flutter/services.dart';
+import 'package:confetti/confetti.dart';
 import '../data/flashcard_data.dart';
 import '../services/sound_service.dart';
 
@@ -16,11 +18,19 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
   int? secondSelectedIdx;
   bool isProcessing = false;
   int matchesFound = 0;
+  late ConfettiController _confettiController;
 
   @override
   void initState() {
     super.initState();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 5));
     _setupGame();
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
   }
 
   void _setupGame() {
@@ -78,8 +88,11 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
 
     if (firstCard.id == secondCard.id) {
       // Match found!
+      HapticFeedback.lightImpact();
       setState(() {
         matchesFound++;
+        cards[firstSelectedIdx!].isMatched = true;
+        cards[secondSelectedIdx!].isMatched = true;
       });
       // Success sound
       SoundService.playLetter(
@@ -94,6 +107,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
       });
     } else {
       // No match
+      HapticFeedback.heavyImpact();
       Future.delayed(const Duration(milliseconds: 1000), () {
         setState(() {
           firstSelectedIdx = null;
@@ -105,31 +119,71 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
   }
 
   void _showWinDialog() {
+    _confettiController.play();
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text("Congratulations!", textAlign: TextAlign.center),
-        content: const Text("You matched all the letters!",
-            textAlign: TextAlign.center),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text("Menu"),
+      builder: (context) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.elasticOut,
+          builder: (context, value, child) {
+            return Transform.scale(scale: value, child: child);
+          },
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.celebration,
+                  color: Colors.deepPurple,
+                  size: 60,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "Congratulations!",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "You matched all the letters!",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6C5CE7),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Menu"),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6C5CE7),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _setupGame();
+                  },
+                  child: const Text("Play Again"),
+                ),
+              ],
+            ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _setupGame();
-            },
-            child: const Text("Play Again"),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -138,66 +192,74 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF0EEFF),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Row(
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 children: [
-                  _buildNavButton(Icons.arrow_back_ios_rounded,
-                      () => Navigator.pop(context)),
-                  const SizedBox(width: 12),
-                  const Text(
-                    "Matching Game",
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF2D2D4E)),
+                  Row(
+                    children: [
+                      _buildNavButton(Icons.arrow_back_ios_rounded,
+                          () => Navigator.pop(context)),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "Matching Game",
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF2D2D4E)),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "Matches: $matchesFound / 6",
+                    style: const TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF6C5CE7),
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3, // 3 columns x 4 rows = 12 cards
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemCount: cards.length,
+                      itemBuilder: (context, index) {
+                        return _buildCard(index);
+                      },
+                    ),
+                  ),
+                  if (matchesFound == 6)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: ElevatedButton(
+                        onPressed: _showWinDialog,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6C5CE7),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: const Text("See Result",
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
                 ],
               ),
-              const SizedBox(height: 20),
-              Text(
-                "Matches: $matchesFound / 6",
-                style: const TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF6C5CE7),
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3, // 3 columns x 4 rows = 12 cards
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: cards.length,
-                  itemBuilder: (context, index) {
-                    return _buildCard(index);
-                  },
-                ),
-              ),
-              if (matchesFound == 6)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: ElevatedButton(
-                    onPressed: _showWinDialog,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C5CE7),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 40, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: const Text("See Result",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-            ],
-          ),
+            ),
+            ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+            ),
+          ],
         ),
       ),
     );
@@ -206,43 +268,50 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
   Widget _buildCard(int index) {
     final card = cards[index];
     bool isSelected = index == firstSelectedIdx || index == secondSelectedIdx;
-    bool isMatched =
-        false; // We can add a 'matched' property to GameCard for better persistence
-
-    // For simplicity in this version, we just check if the game is over or
-    // if we need to track matched indices in a list.
-    // Let's add a 'matched' property to GameCard in the definition below.
+    bool isMatched = card.isMatched;
 
     return GestureDetector(
-      onTap: () => _onCardTap(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : const Color(0xFFBDBBFF),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2)),
-          ],
-          border: Border.all(
-            color: isSelected ? const Color(0xFF6C5CE7) : Colors.transparent,
-            width: 2,
+      onTap: () {
+        if (!isMatched) {
+          _onCardTap(index);
+        }
+      },
+      child: AnimatedScale(
+        scale: isSelected ? 1.05 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          decoration: BoxDecoration(
+            color: isMatched 
+                ? Colors.greenAccent 
+                : (isSelected ? Colors.white : const Color(0xFFBDBBFF)),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2)),
+            ],
+            border: Border.all(
+              color: isMatched 
+                  ? Colors.green 
+                  : (isSelected ? const Color(0xFF6C5CE7) : Colors.transparent),
+              width: isMatched ? 3 : 2,
+            ),
           ),
-        ),
-        child: Center(
-          child: isSelected
-              ? (card.type == CardType.letter
-                  ? Text(card.letter!,
-                      style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Pyidaungsu',
-                          color: Color(0xFF2D2D4E)))
-                  : Image.asset(card.image!,
-                      width: 90, height: 90, fit: BoxFit.contain))
-              : const Icon(Icons.help_outline, size: 32, color: Colors.white),
+          child: Center(
+            child: isSelected || isMatched
+                ? (card.type == CardType.letter
+                    ? Text(card.letter!,
+                        style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Pyidaungsu',
+                            color: Color(0xFF2D2D4E)))
+                    : Image.asset(card.image!,
+                        width: 90, height: 90, fit: BoxFit.contain))
+                : const Icon(Icons.help_outline, size: 32, color: Colors.white),
+          ),
         ),
       ),
     );
@@ -275,6 +344,7 @@ class GameCard {
   final String? image;
   final String? id;
   final CardType type;
+  bool isMatched;
 
-  GameCard({this.letter, this.image, this.id, required this.type});
+  GameCard({this.letter, this.image, this.id, required this.type, this.isMatched = false});
 }

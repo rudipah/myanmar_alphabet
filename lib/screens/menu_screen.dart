@@ -3,6 +3,8 @@ import 'home_screen.dart';
 import 'flashcard_screen.dart'; // Import the flashcard screen
 import 'quiz_screen.dart'; // Import the quiz screen
 import 'matching_game_screen.dart'; // Import the matching game screen
+import '../data/flashcard_data.dart'; // Import flashcards for Letter of the Day
+import '../services/sound_service.dart'; // Import sound service
 // import 'progress_screen.dart'; // Import the progress screen
 
 class MenuScreen extends StatefulWidget {
@@ -17,10 +19,12 @@ class _MenuScreenState extends State<MenuScreen>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
+  late Flashcard dailyLetter;
 
   @override
   void initState() {
     super.initState();
+    _setupDailyLetter();
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -37,6 +41,13 @@ class _MenuScreenState extends State<MenuScreen>
       curve: Curves.easeOut,
     ));
     _animController.forward();
+  }
+
+  void _setupDailyLetter() {
+    // Use the current date to pick a consistent letter for the day
+    final now = DateTime.now();
+    final dayOfYear = now.day + (now.month * 31) + (now.year * 365); // Simple deterministic seed
+    dailyLetter = flashcards[dayOfYear % flashcards.length];
   }
 
   @override
@@ -145,7 +156,45 @@ class _MenuScreenState extends State<MenuScreen>
 
                     const SizedBox(height: 24),
 
+                    // ---- Letter of the Day Section ----
+                    GestureDetector(
+                      onTap: () {
+                        SoundService.playLetter(dailyLetter.audio);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "🌟 Letter of the Day: ",
+                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                            ),
+                            Text(
+                              dailyLetter.letter,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Pyidaungsu',
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.volume_up, color: Colors.white, size: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
                     // ---- Title ----
+
                     const Text(
                       'Learn Myanmar Alphabet',
                       style: TextStyle(
