@@ -1,0 +1,103 @@
+{
+  "numbers": [
+    {
+      "character": "၀",
+      "name": "zero",
+      "emoji": "🥚",
+      "colorValue": "#6C5CE7",
+      "audioFile": "zero0.ogg",
+      "myanmarWord": "သုည",
+      "wordMeaning": "zero"
+    },
+    {
+      "character": "၁",
+      "name": "one",
+      "emoji": "🌟",
+      "colorValue": "#FF6B6B",
+      "audioFile": "one.ogg",
+      "myanmarWord": "တစ်",
+      "wordMeaning": "one"
+    },
+    {
+      "character": "၂",
+      "name": "two",
+      "emoji": "🍎",
+      "colorValue": "#FF9F43",
+      "audioFile": "two.ogg",
+      "myanmarWord": "နှစ်",
+      "wordMeaning": "two"
+    },
+    {
+      "character": "၃",
+      "name": "three",
+      "emoji": "🌸",
+      "colorValue": "#26DE81",
+      "audioFile": "three.ogg",
+      "myanmarWord": "သုံး",
+      "wordMeaning": "three"
+    },
+    {
+      "character": "၄",
+      "name": "four",
+      "emoji": "🦋",
+      "colorValue": "#54A0FF",
+      "audioFile": "four.ogg",
+      "myanmarWord": "လေး",
+      "wordMeaning": "four"
+    },
+    {
+      "character": "၅",
+      "name": "five",
+      "emoji": "🐠",
+      "colorValue": "#FF6B9D",
+      "audioFile": "five.ogg",
+      "myanmarWord": "ငါး",
+      "wordMeaning": "five"
+    },
+    {
+      "character": "၆",
+      "name": "six",
+      "emoji": "🐢",
+      "colorValue": "#00D2D3",
+      "audioFile": "six.ogg",
+      "myanmarWord": "ခြောက်",
+      "wordMeaning": "six"
+    },
+    {
+      "character": "၇",
+      "name": "seven",
+      "emoji": "🌈",
+      "colorValue": "#FD9644",
+      "audioFile": "seven.ogg",
+      "myanmarWord": "ခုနစ်",
+      "wordMeaning": "seven"
+    },
+    {
+      "character": "၈",
+      "name": "eight",
+      "emoji": "🐵",
+      "colorValue": "#A29BFE",
+      "audioFile": "eight.ogg",
+      "myanmarWord": "ရှစ်",
+      "wordMeaning": "eight"
+    },
+    {
+      "character": "၉",
+      "name": "nine",
+      "emoji": "🌻",
+      "colorValue": "#E84393",
+      "audioFile": "nine.ogg",
+      "myanmarWord": "ကိုး",
+      "wordMeaning": "nine"
+    },
+    {
+      "character": "၁၀",
+      "name": "ten",
+      "emoji": "🎉",
+      "colorValue": "#00B894",
+      "audioFile": "ten.ogg",
+      "myanmarWord": "တစ်ဆယ်",
+      "wordMeaning": "ten"
+    }
+  ]
+}

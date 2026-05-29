@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../data/flashcard_data.dart';
+import '../data/data_loader.dart';
 import '../services/sound_service.dart';
+import '../models/flashcard.dart';
+import '../utils/app_colors.dart';
 
 enum QuizMode { visual, audio }
 
@@ -20,31 +23,42 @@ class _QuizScreenState extends State<QuizScreen> {
   int? clickedIndex; // null: not answered, stores the index of the chosen option
   bool isAnswered = false;
   QuizMode currentMode = QuizMode.visual;
+  List<Flashcard> _flashcards = [];
 
   @override
   void initState() {
     super.initState();
-    _generateQuestion();
+    _loadFlashcards().then((_) => _generateQuestion());
+  }
+
+  /// Load flashcards from JSON or use hardcoded fallback
+  Future<void> _loadFlashcards() async {
+    try {
+      _flashcards = await DataLoader.loadFlashcards();
+      debugPrint('Loaded ${_flashcards.length} flashcards from JSON');
+    } catch (e) {
+      debugPrint('Failed to load flashcards (using fallback): $e');
+    }
   }
 
   void _generateQuestion() {
     setState(() {
       isAnswered = false;
       clickedIndex = null;
-      
+
       // Pick a random card as the correct answer
       final random = Random();
-      correctCard = flashcards[random.nextInt(flashcards.length)];
-      
+      correctCard = _flashcards[random.nextInt(_flashcards.length)];
+
       // Create a list of options (correct + 3 random distractors)
       List<Flashcard> wrongOptions = [];
       while (wrongOptions.length < 3) {
-        final randomCard = flashcards[random.nextInt(flashcards.length)];
+        final randomCard = _flashcards[random.nextInt(_flashcards.length)];
         if (randomCard.letter != correctCard.letter) {
           wrongOptions.add(randomCard);
         }
       }
-      
+
       options = [correctCard, ...wrongOptions];
       options.shuffle();
     });
@@ -115,7 +129,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C5CE7),
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -131,7 +145,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C5CE7),
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -180,14 +194,14 @@ class _QuizScreenState extends State<QuizScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Mode Toggle
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
                     currentMode == QuizMode.visual ? "Visual Mode" : "Audio Mode",
-                    style: const TextStyle(fontSize: 14, color: Color(0xFF6C5CE7), fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.bold),
                   ),
                   Switch(
                     value: currentMode == QuizMode.visual,
@@ -197,16 +211,16 @@ class _QuizScreenState extends State<QuizScreen> {
                         _generateQuestion(); // Reset question when switching modes for a fresh start
                       });
                     },
-                    activeColor: const Color(0xFF6C5CE7),
+                    activeThumbColor: AppColors.primary,
                   ),
                 ],
               ),
-              
+
               // Progress Bar
               LinearProgressIndicator(
                 value: (currentQuestionIndex + 1) / 10,
                 backgroundColor: Colors.white,
-                color: const Color(0xFF6C5CE7),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(10),
               ),
               const SizedBox(height: 8),
@@ -215,7 +229,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 30),
-              
+
               // The Question Area
               Center(
                 child: Column(
@@ -234,16 +248,20 @@ class _QuizScreenState extends State<QuizScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
+                            BoxShadow(
+                              color: const Color(0xFF000000).withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
                         ),
                         child: Center(
-                          child: currentMode == QuizMode.visual 
-                            ? Text(
-                                correctCard.letter,
-                                style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold, fontFamily: 'Pyidaungsu'),
-                              )
-                            : const Icon(Icons.volume_up, size: 80, color: Color(0xFF6C5CE7)),
+                          child: currentMode == QuizMode.visual
+                              ? Text(
+                                  correctCard.letter,
+                                  style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold, fontFamily: 'Pyidaungsu'),
+                                )
+                              : const Icon(Icons.volume_up, size: 80, color: AppColors.primary),
                         ),
                       ),
                     ),
@@ -260,7 +278,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              
+
               // Options Grid
               Expanded(
                 child: GridView.builder(
@@ -276,7 +294,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   },
                 ),
               ),
-              
+
               // Next Button
               if (isAnswered)
                 SizedBox(
@@ -285,7 +303,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   child: ElevatedButton(
                     onPressed: _nextQuestion,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C5CE7),
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
@@ -302,7 +320,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget _buildOptionButton(Flashcard option, int index) {
     bool isCorrect = option.letter == correctCard.letter;
     Color color = Colors.white;
-    
+
     if (isAnswered) {
       if (isCorrect) {
         color = Colors.greenAccent;
@@ -318,10 +336,10 @@ class _QuizScreenState extends State<QuizScreen> {
           color: color,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2)),
+            BoxShadow(color: const Color(0xFF000000).withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2)),
           ],
           border: Border.all(
-            color: isAnswered && isCorrect ? Colors.green : const Color(0xFF6C5CE7).withOpacity(0.3),
+            color: isAnswered && isCorrect ? Colors.green : AppColors.primary.withValues(alpha: 0.3),
             width: isAnswered && isCorrect ? 2 : 1,
           ),
         ),
@@ -341,11 +359,11 @@ class _QuizScreenState extends State<QuizScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
+          BoxShadow(color: const Color(0xFF000000).withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4)),
         ],
       ),
       child: IconButton(
-        icon: Icon(icon, size: 32, color: const Color(0xFF6C5CE7)),
+        icon: Icon(icon, size: 32, color: AppColors.primary),
         onPressed: onPressed,
       ),
     );

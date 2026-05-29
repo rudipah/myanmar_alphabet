@@ -16,4 +16,24 @@ class MyanmarLetter {
     this.myanmarWord = '',
     this.wordMeaning = '',
   });
+
+  /// Create from JSON (for loading from assets)
+  factory MyanmarLetter.fromJson(Map<String, dynamic> json) {
+    return MyanmarLetter(
+      character: json['character'],
+      name: json['name'],
+      emoji: json['emoji'] ?? '',
+      colorValue: int.parse(json['colorValue'].replaceAll('#', '0x')),
+      audioFile: json['audioFile'],
+    );
+  }
+
+  /// Convert to JSON (for saving)
+  Map<String, dynamic> toJson() => {
+        'character': character,
+        'name': name,
+        'emoji': emoji,
+        'colorValue': '#${colorValue.toRadixString(16).padLeft(8, '0')}',
+        'audioFile': audioFile,
+      };
 }

@@ -3,8 +3,13 @@ import 'home_screen.dart';
 import 'flashcard_screen.dart'; // Import the flashcard screen
 import 'quiz_screen.dart'; // Import the quiz screen
 import 'matching_game_screen.dart'; // Import the matching game screen
-import '../data/flashcard_data.dart'; // Import flashcards for Letter of the Day
+import 'settings_screen.dart'; // Import settings screen
+import '../data/data_loader.dart'; // Import data loader
+import '../models/flashcard.dart'; // Flashcard model type
 import '../services/sound_service.dart'; // Import sound service
+import '../utils/app_colors.dart';
+import '../utils/navigator_util.dart';
+import '../widgets/menu_button.dart';
 // import 'progress_screen.dart'; // Import the progress screen
 
 class MenuScreen extends StatefulWidget {
@@ -19,12 +24,16 @@ class _MenuScreenState extends State<MenuScreen>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
-  late Flashcard dailyLetter;
+
+  // Flashcards list from loader
+  late List<Flashcard> flashcards;
+  Flashcard? _dailyLetter;
 
   @override
   void initState() {
     super.initState();
-    _setupDailyLetter();
+
+    // Initialize animations first (before async data loading)
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -40,14 +49,31 @@ class _MenuScreenState extends State<MenuScreen>
       parent: _animController,
       curve: Curves.easeOut,
     ));
-    _animController.forward();
+
+    // Load flashcards from JSON
+    _loadData();
   }
 
-  void _setupDailyLetter() {
-    // Use the current date to pick a consistent letter for the day
+  Future<void> _loadData() async {
+    // Load flashcards from JSON
+    flashcards = await DataLoader.loadFlashcards();
+
+    // Use a simpler deterministic seed - use letter index based on date
     final now = DateTime.now();
-    final dayOfYear = now.day + (now.month * 31) + (now.year * 365); // Simple deterministic seed
-    dailyLetter = flashcards[dayOfYear % flashcards.length];
+    if (flashcards.isNotEmpty) {
+      // Use month-day combination as index (never zero)
+      final index = ((now.month + now.day) % flashcards.length);
+      setState(() {
+        _dailyLetter = flashcards[index];
+      });
+    }
+
+    // Start animations after data is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _animController.forward();
+      }
+    });
   }
 
   @override
@@ -56,41 +82,24 @@ class _MenuScreenState extends State<MenuScreen>
     super.dispose();
   }
 
-  // Navigation functions
   void _navigateToHome(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-    );
+    NavigatorUtil.push(context, const HomeScreen());
   }
 
   void _navigateToFlashcards(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const FlashcardScreen(),
-      ),
-    );
+    NavigatorUtil.push(context, const FlashcardScreen());
   }
 
   void _navigateToQuiz(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const QuizScreen(),
-      ),
-    );
+    NavigatorUtil.push(context, const QuizScreen());
   }
 
   void _navigateToMatchingGame(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const MatchingGameScreen(),
-      ),
-    );
+    NavigatorUtil.push(context, const MatchingGameScreen());
+  }
+
+  void _navigateToSettings(BuildContext context) {
+    NavigatorUtil.push(context, const SettingsScreen());
   }
 
   // void _navigateToProgress(BuildContext context) {
@@ -113,8 +122,8 @@ class _MenuScreenState extends State<MenuScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF6C5CE7),
-              Color(0xFF9B8FF5),
+              AppColors.primary,
+              AppColors.primaryLight,
               Color(0xFFA29BFE),
             ],
           ),
@@ -124,7 +133,7 @@ class _MenuScreenState extends State<MenuScreen>
             opacity: _fadeAnim,
             child: SlideTransition(
               position: _slideAnim,
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -134,10 +143,10 @@ class _MenuScreenState extends State<MenuScreen>
                       width: 110,
                       height: 110,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha:0.2),
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha:0.4),
                           width: 2,
                         ),
                       ),
@@ -159,14 +168,14 @@ class _MenuScreenState extends State<MenuScreen>
                     // ---- Letter of the Day Section ----
                     GestureDetector(
                       onTap: () {
-                        SoundService.playLetter(dailyLetter.audio);
+                        SoundService.playLetter(_dailyLetter?.audio ?? 'a.ogg');
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha:0.2),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+                          border: Border.all(color: Colors.white.withValues(alpha:0.5), width: 1.5),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -176,7 +185,7 @@ class _MenuScreenState extends State<MenuScreen>
                               style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                             ),
                             Text(
-                              dailyLetter.letter,
+                              (_dailyLetter?.letter ?? '؟'),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 24,
@@ -209,7 +218,7 @@ class _MenuScreenState extends State<MenuScreen>
                       'Tap start to begin learning',
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha:0.8),
                       ),
                     ),
 
@@ -219,142 +228,41 @@ class _MenuScreenState extends State<MenuScreen>
                     Column(
                       children: [
                         // Start Learning button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(24),
-                            onTap: () => _navigateToHome(context),
-                            child: Ink(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.12),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '✏️  Start Learning',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF6C5CE7),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                        MenuButton(
+                          label: 'Start Learning',
+                          icon: const Text('✏️', style: TextStyle(fontSize: 22)),
+                          onTap: () => _navigateToHome(context),
                         ),
                         const SizedBox(height: 20), // Space between buttons
                         // Flashcard button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(24),
-                            onTap: () => _navigateToFlashcards(context),
-                            child: Ink(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.12),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '📚  Flashcards',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF6C5CE7),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                        MenuButton(
+                          label: 'Flashcards',
+                          icon: const Text('📚', style: TextStyle(fontSize: 22)),
+                          onTap: () => _navigateToFlashcards(context),
                         ),
                         const SizedBox(height: 20), // Space between buttons
                         // Quiz button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(24),
-                            onTap: () => _navigateToQuiz(context),
-                            child: Ink(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.12),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '🎯  Quiz Time',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF6C5CE7),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                        MenuButton(
+                          label: 'Quiz Time',
+                          icon: const Text('🎯', style: TextStyle(fontSize: 22)),
+                          onTap: () => _navigateToQuiz(context),
                         ),
                         const SizedBox(height: 20), // Space between buttons
                         // Matching Game button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(24),
-                            onTap: () => _navigateToMatchingGame(context),
-                            child: Ink(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.12),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '🧩  Matching Game',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF6C5CE7),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                        MenuButton(
+                          label: 'Matching Game',
+                          icon: const Text('🧩', style: TextStyle(fontSize: 22)),
+                          onTap: () => _navigateToMatchingGame(context),
                         ),
                         const SizedBox(height: 20), // Space between buttons
-                        /* 
+                        // Settings button
+                        MenuButton(
+                          label: 'Settings',
+                          icon: const Text('⚙️', style: TextStyle(fontSize: 22)),
+                          onTap: () => _navigateToSettings(context),
+                        ),
+                        const SizedBox(height: 20), // Space between buttons
+                        /*
                         // Progress button
                         Material(
                           color: Colors.transparent,
@@ -369,7 +277,7 @@ class _MenuScreenState extends State<MenuScreen>
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.12),
+                                    color: Colors.black.withValues(alpha:0.12),
                                     blurRadius: 16,
                                     offset: const Offset(0, 6),
                                   ),

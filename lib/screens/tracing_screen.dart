@@ -6,6 +6,7 @@ import '../services/sound_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../utils/ad_helper.dart';
 import 'package:confetti/confetti.dart';
+import '../utils/app_colors.dart';
 
 class TracingScreen extends StatefulWidget {
   final MyanmarLetter letter;
@@ -400,9 +401,7 @@ class _TracingScreenState extends State<TracingScreen>
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Color(
-                                        0xFF6C5CE7,
-                                      ).withOpacity(_glowAnim.value),
+                                      color: AppColors.primary.withOpacity(_glowAnim.value),
                                       blurRadius: 25,
                                       spreadRadius: 3,
                                     ),

@@ -1,4 +1,5 @@
 import '../models/letter.dart';
+import '../utils/app_colors.dart';
 
 const List<MyanmarLetter> myanmarLetters = [
   // Row 1 — Velar stops
@@ -80,7 +81,7 @@ const List<MyanmarLetter> myanmarLetters = [
       character: 'ည',
       name: 'nya',
       emoji: '🌙',
-      colorValue: 0xFF6C5CE7,
+      colorValue: AppColors.primaryValue,
       audioFile: 'nya.ogg'),
   // myanmarWord: 'ညနေ',
   // wordMeaning: 'evening'),
@@ -174,7 +175,7 @@ const List<MyanmarLetter> myanmarLetters = [
       character: 'ပ',
       name: 'pa',
       emoji: '🦜',
-      colorValue: 0xFF6C5CE7,
+      colorValue: AppColors.primaryValue,
       audioFile: 'pa.ogg'),
   // myanmarWord: 'ပန်း',
   // wordMeaning: 'flower'),

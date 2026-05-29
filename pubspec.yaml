@@ -12,6 +12,7 @@ dependencies:
   confetti: ^0.7.0
   google_mobile_ads: ^5.1.0
   just_audio: ^0.9.40
+  shared_preferences: ^2.2.3
   
 
 dev_dependencies:
@@ -40,6 +41,8 @@ flutter:
   assets:
     - assets/audio/
     - assets/images/
+    - assets/data/
+    - assets/fonts/
 
   fonts:
     - family: Pyidaungsu

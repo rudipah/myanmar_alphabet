@@ -39,10 +39,14 @@ The goal is to make learning the Myanmar alphabet easy, engaging, and fun.
 ## 🎯 Features
 
 - ✏️ Letter tracing practice with finger input
+- ✏️ Guided letter tracing with stroke order
 - 🔊 Audio pronunciation for each Myanmar character
 - 🎉 Interactive feedback and animations
 - 🧒 Designed for kids and beginners
 - 📱 Clean and simple UI optimized for mobile devices
+- 📱 Flashcards with words and pictures for each letter
+- 📱 Interactive Quizzes (Multiple Choice, Reverse Quiz,Matching Game)
+- 📅 Letter of the Day (Daily Discovery)
 - 📢 Integrated ads (Google AdMob)
 
 ---

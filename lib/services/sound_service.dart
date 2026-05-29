@@ -1,5 +1,6 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
+import 'preferences_service.dart';
 
 class SoundService {
   static final AudioPlayer _player = AudioPlayer();
@@ -21,20 +22,21 @@ class SoundService {
   /// Use this when entering a letter category or starting a session.
   static Future<void> preloadAudioFiles(List<String> files) async {
     if (kIsWeb) return;
-    
+
     final List<Future> preloadTasks = [];
-    
+
     for (var file in files) {
-      if (!_audioCache.containsKey(file)) {
-        final source = AudioSource.asset('assets/audio/$file');
-        _audioCache[file] = source;
-        
+      final path = file.startsWith('assets/audio/') ? file : 'assets/audio/$file';
+      if (!_audioCache.containsKey(path)) {
+        final source = AudioSource.asset(path);
+        _audioCache[path] = source;
+
         // We "prime" the player by briefly loading the source.
         // This forces the asset to be cached by the underlying platform.
         preloadTasks.add(_primeSource(source));
       }
     }
-    
+
     await Future.wait(preloadTasks);
     debugPrint('🔊 SoundService: Preloaded ${files.length} files.');
   }
@@ -57,23 +59,46 @@ class SoundService {
     try {
       await _player.stop();
 
-      final source = _audioCache[audioFile];
+      final format = await PreferencesService.getAudioFormat();
+      String finalFile = audioFile;
 
-      if (source != null) {
-        await _player.setAudioSource(source);
-      } else {
-        // Fallback for missing preloads: load on the fly
-        await _player.setAsset('assets/audio/$audioFile');
-        // Add to cache now so next time it's instant
-        _audioCache[audioFile] = AudioSource.asset('assets/audio/$audioFile');
+      // 1. Try to use the long version if requested and it's not already a special file
+      if (format == AudioFormat.long && !audioFile.contains('_long') && !audioFile.contains('_word')) {
+        finalFile = audioFile.replaceAll('.ogg', '_long.ogg');
       }
 
-      await _player.play();
+      final path = finalFile.startsWith('assets/audio/') ? finalFile : 'assets/audio/$finalFile';
+
+      try {
+        // Try loading the calculated path (could be long version)
+        await _setSourceAndPlay(path);
+      } catch (e) {
+        // 2. Fallback: If long version failed, try the original short version
+        if (finalFile != audioFile) {
+          debugPrint('⚠️ SoundService: Long version not found for $audioFile, falling back to short version.');
+          final fallbackPath = audioFile.startsWith('assets/audio/') ? audioFile : 'assets/audio/$audioFile';
+          await _setSourceAndPlay(fallbackPath);
+        } else {
+          rethrow; // If short version also fails, let the outer catch handle it
+        }
+      }
     } catch (e) {
-      debugPrint('❌ SoundService Playback Error: $e');
+      debugPrint('❌ SoundService Playback Error for $audioFile: $e');
     } finally {
       _isBusy = false;
     }
+  }
+
+  /// Helper to handle source selection and playback
+  static Future<void> _setSourceAndPlay(String path) async {
+    final source = _audioCache[path];
+    if (source != null) {
+      await _player.setAudioSource(source);
+    } else {
+      await _player.setAsset(path);
+      _audioCache[path] = AudioSource.asset(path);
+    }
+    await _player.play();
   }
 
   static Future<void> stop() async {

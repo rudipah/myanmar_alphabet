@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../data/flashcard_data.dart';
+import '../data/data_loader.dart';
 import '../services/sound_service.dart';
+import '../models/flashcard.dart';
+import '../utils/app_colors.dart';
 
 class FlashcardScreen extends StatefulWidget {
   const FlashcardScreen({super.key});
@@ -12,19 +15,39 @@ class FlashcardScreen extends StatefulWidget {
 class _FlashcardScreenState extends State<FlashcardScreen> {
   int currentIndex = 0;
   bool isFlipped = false;
+  List<Flashcard> _flashcards = [];
 
-  Flashcard get currentCard => flashcards[currentIndex];
+  Flashcard get currentCard => _flashcards.isNotEmpty ? _flashcards[currentIndex] : Flashcard.empty();
+
+  /// Load flashcards from JSON or use hardcoded fallback
+  Future<void> _loadFlashcards() async {
+    try {
+      final data = await DataLoader.loadFlashcards();
+      setState(() {
+        _flashcards = data;
+      });
+      debugPrint('Loaded ${_flashcards.length} flashcards from JSON');
+    } catch (e) {
+      debugPrint('Failed to load flashcards (using fallback): $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFlashcards();
+  }
 
   void _nextCard() {
     setState(() {
-      currentIndex = (currentIndex + 1) % flashcards.length;
+      currentIndex = (currentIndex + 1) % _flashcards.length;
       isFlipped = false;
     });
   }
 
   void _prevCard() {
     setState(() {
-      currentIndex = (currentIndex - 1 + flashcards.length) % flashcards.length;
+      currentIndex = (currentIndex - 1 + _flashcards.length) % _flashcards.length;
       isFlipped = false;
     });
   }
@@ -70,7 +93,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               Expanded(
                 child: Center(
                   child: GestureDetector(
@@ -126,14 +149,14 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: const Color(0xFF000000).withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: IconButton(
-        icon: Icon(icon, size: 32, color: const Color(0xFF6C5CE7)),
+        icon: Icon(icon, size: 32, color: AppColors.primary),
         onPressed: onPressed,
       ),
     );
@@ -198,7 +221,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                 ),
                 const SizedBox(width: 10),
                 IconButton(
-                  icon: const Icon(Icons.volume_up, color: Color(0xFF6C5CE7)),
+                  icon: const Icon(Icons.volume_up, color: AppColors.primary),
                   onPressed: _repeatLetterAudio,
                 ),
               ],
@@ -224,7 +247,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                 ),
                 const SizedBox(width: 10),
                 IconButton(
-                  icon: const Icon(Icons.volume_up, color: Color(0xFF6C5CE7)),
+                  icon: const Icon(Icons.volume_up, color: AppColors.primary),
                   onPressed: _repeatDescriptionAudio,
                 ),
               ],

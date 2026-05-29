@@ -5,21 +5,34 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/menu_screen.dart';
 import 'services/sound_service.dart';
 import 'services/app_initializer.dart';
+import 'data/data_loader.dart';
+import 'models/letter.dart';
+import 'models/flashcard.dart';
+import 'utils/app_colors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Force portrait orientation
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // Initialize ads
   await MobileAds.instance.initialize();
   try {
     await AppInitializer.init();
   } catch (e) {
     debugPrint("Init error: $e");
+  }
+
+  // Load data from JSON assets
+  try {
+    await DataLoader.init();
+    debugPrint("Data loaded from JSON successfully!");
+  } catch (e) {
+    debugPrint("DataLoader init error (using fallback): $e");
   }
 
   runApp(const MyanmarAlphabetApp());
@@ -42,7 +55,7 @@ class MyanmarAlphabetApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6C5CE7),
+          seedColor: AppColors.primary,
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: true,
