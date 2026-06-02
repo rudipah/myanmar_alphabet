@@ -10,7 +10,7 @@ import '../services/sound_service.dart'; // Import sound service
 import '../utils/app_colors.dart';
 import '../utils/navigator_util.dart';
 import '../widgets/menu_button.dart';
-// import 'progress_screen.dart'; // Import the progress screen
+import 'progress_screen.dart'; // Import the progress screen
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -100,6 +100,10 @@ class _MenuScreenState extends State<MenuScreen>
 
   void _navigateToSettings(BuildContext context) {
     NavigatorUtil.push(context, const SettingsScreen());
+  }
+
+  void _navigateToProgress(BuildContext context) {
+    NavigatorUtil.push(context, const ProgressScreen());
   }
 
   // void _navigateToProgress(BuildContext context) {
@@ -227,76 +231,60 @@ class _MenuScreenState extends State<MenuScreen>
                     // ---- Buttons ----
                     Column(
                       children: [
-                        // Start Learning button
+                        // Primary Action: Start Learning
                         MenuButton(
                           label: 'Start Learning',
                           icon: const Text('✏️', style: TextStyle(fontSize: 22)),
                           onTap: () => _navigateToHome(context),
+                          isPrimary: false,
                         ),
-                        const SizedBox(height: 20), // Space between buttons
-                        // Flashcard button
-                        MenuButton(
-                          label: 'Flashcards',
-                          icon: const Text('📚', style: TextStyle(fontSize: 22)),
-                          onTap: () => _navigateToFlashcards(context),
+                        const SizedBox(height: 30),
+
+                        // Game Modes Grid
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 20,
+                          mainAxisSpacing: 20,
+                          childAspectRatio: 2.2,
+                          children: [
+                            MenuButton(
+                              label: 'Flashcards',
+                              icon: const Text('📚', style: TextStyle(fontSize: 22)),
+                              onTap: () => _navigateToFlashcards(context),
+                            ),
+                            MenuButton(
+                              label: 'Quiz Time',
+                              icon: const Text('🎯', style: TextStyle(fontSize: 22)),
+                              onTap: () => _navigateToQuiz(context),
+                            ),
+                            MenuButton(
+                              label: 'Matching',
+                              icon: const Text('🧩', style: TextStyle(fontSize: 22)),
+                              onTap: () => _navigateToMatchingGame(context),
+                            ),
+                            MenuButton(
+                              label: 'Progress',
+                              icon: const Text('📊', style: TextStyle(fontSize: 22)),
+                              onTap: () => _navigateToProgress(context),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 20), // Space between buttons
-                        // Quiz button
-                        MenuButton(
-                          label: 'Quiz Time',
-                          icon: const Text('🎯', style: TextStyle(fontSize: 22)),
-                          onTap: () => _navigateToQuiz(context),
-                        ),
-                        const SizedBox(height: 20), // Space between buttons
-                        // Matching Game button
-                        MenuButton(
-                          label: 'Matching Game',
-                          icon: const Text('🧩', style: TextStyle(fontSize: 22)),
-                          onTap: () => _navigateToMatchingGame(context),
-                        ),
-                        const SizedBox(height: 20), // Space between buttons
-                        // Settings button
-                        MenuButton(
-                          label: 'Settings',
-                          icon: const Text('⚙️', style: TextStyle(fontSize: 22)),
-                          onTap: () => _navigateToSettings(context),
-                        ),
-                        const SizedBox(height: 20), // Space between buttons
-                        /*
-                        // Progress button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(24),
-                            onTap: () => _navigateToProgress(context),
-                            child: Ink(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha:0.12),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '📊  My Progress',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF6C5CE7),
-                                  ),
-                                ),
+                        const SizedBox(height: 30),
+
+                        // Utilities Row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: MenuButton(
+                                label: 'Settings',
+                                icon: const Text('⚙️', style: TextStyle(fontSize: 22)),
+                                onTap: () => _navigateToSettings(context),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                        */
                       ],
                     ),
                   ],

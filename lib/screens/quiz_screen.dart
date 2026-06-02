@@ -5,6 +5,7 @@ import '../data/data_loader.dart';
 import '../services/sound_service.dart';
 import '../models/flashcard.dart';
 import '../utils/app_colors.dart';
+import '../services/preferences_service.dart';
 
 enum QuizMode { visual, audio }
 
@@ -77,6 +78,7 @@ class _QuizScreenState extends State<QuizScreen> {
       clickedIndex = index;
       if (options[index].letter == correctCard.letter) {
         score++;
+        PreferencesService.incrementLetterProgress(correctCard.letter);
       }
     });
   }

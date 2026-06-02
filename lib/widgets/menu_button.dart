@@ -5,12 +5,14 @@ class MenuButton extends StatelessWidget {
   final String label;
   final dynamic icon;
   final VoidCallback onTap;
+  final bool isPrimary;
 
   const MenuButton({
     super.key,
     required this.label,
     required this.icon,
     required this.onTap,
+    this.isPrimary = false,
   });
 
   @override
@@ -24,11 +26,13 @@ class MenuButton extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: isPrimary ? AppColors.primary : AppColors.surface,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.12),
+                color: isPrimary
+                    ? AppColors.primary.withValues(alpha: 0.3)
+                    : Colors.black.withValues(alpha: 0.12),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -39,16 +43,16 @@ class MenuButton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (icon is IconData)
-                  Icon(icon, color: AppColors.primary),
+                  Icon(icon, color: isPrimary ? Colors.white : AppColors.primary),
                 if (icon is Widget)
                   icon,
                 const SizedBox(width: 8),
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.primary,
+                    color: isPrimary ? Colors.white : AppColors.primary,
                   ),
                 ),
               ],

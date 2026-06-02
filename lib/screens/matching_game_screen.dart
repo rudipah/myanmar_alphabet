@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:confetti/confetti.dart';
-import '../data/flashcard_data.dart';
 import '../data/data_loader.dart';
 import '../services/sound_service.dart';
 import '../models/flashcard.dart';
 import '../utils/app_colors.dart';
+import '../services/preferences_service.dart';
 
 class MatchingGameScreen extends StatefulWidget {
   const MatchingGameScreen({super.key});
@@ -46,7 +45,6 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
         isProcessing = false;
 
         // Pick 6 random cards to create 12 total items (6 letters, 6 images)
-        final random = Random();
         List<Flashcard> selectedFlashcards = [];
         List<Flashcard> shuffledCards = List.from(allFlashcards);
         shuffledCards.shuffle();
@@ -105,6 +103,8 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
         cards![firstSelectedIdx!].isMatched = true;
         cards![secondSelectedIdx!].isMatched = true;
       });
+      // Save progress
+      PreferencesService.incrementLetterProgress(firstCard.id ?? '');
       // Success sound
       SoundService.playLetter(
           firstCard.audio ?? ''); // Use the audio file for success sound
