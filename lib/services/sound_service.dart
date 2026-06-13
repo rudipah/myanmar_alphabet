@@ -7,22 +7,19 @@ class SoundService {
 
   // Cache for preloaded audio sources
   static final Map<String, AudioSource> _audioCache = {};
-  
+
   static bool _isInitialized = false;
   static bool _isBusy = false;
 
   /// Call this once at app startup.
   static Future<void> init() async {
-    if (kIsWeb || _isInitialized) return;
+    if (_isInitialized) return;
     await _player.setVolume(1.0);
     _isInitialized = true;
   }
 
   /// Dynamically preloads audio files into memory to ensure zero-latency playback.
-  /// Use this when entering a letter category or starting a session.
   static Future<void> preloadAudioFiles(List<String> files) async {
-    if (kIsWeb) return;
-
     final List<Future> preloadTasks = [];
 
     for (var file in files) {
@@ -30,9 +27,6 @@ class SoundService {
       if (!_audioCache.containsKey(path)) {
         final source = AudioSource.asset(path);
         _audioCache[path] = source;
-
-        // We "prime" the player by briefly loading the source.
-        // This forces the asset to be cached by the underlying platform.
         preloadTasks.add(_primeSource(source));
       }
     }
@@ -43,7 +37,6 @@ class SoundService {
 
   static Future<void> _primeSource(AudioSource source) async {
     try {
-      // Setting the source without playing it often triggers the internal asset load.
       await _player.setAudioSource(source);
     } catch (e) {
       debugPrint('⚠️ SoundService Preload Error: $e');
@@ -52,17 +45,14 @@ class SoundService {
 
   /// Play sound instantly using the cache.
   static Future<void> playLetter(String audioFile) async {
-    if (kIsWeb || _isBusy) return;
-
+    if (_isBusy) return;
     _isBusy = true;
 
     try {
       await _player.stop();
-
       final format = await PreferencesService.getAudioFormat();
       String finalFile = audioFile;
 
-      // 1. Try to use the long version if requested and it's not already a special file
       if (format == AudioFormat.long && !audioFile.contains('_long') && !audioFile.contains('_word')) {
         finalFile = audioFile.replaceAll('.ogg', '_long.ogg');
       }
@@ -70,16 +60,14 @@ class SoundService {
       final path = finalFile.startsWith('assets/audio/') ? finalFile : 'assets/audio/$finalFile';
 
       try {
-        // Try loading the calculated path (could be long version)
         await _setSourceAndPlay(path);
       } catch (e) {
-        // 2. Fallback: If long version failed, try the original short version
         if (finalFile != audioFile) {
-          debugPrint('⚠️ SoundService: Long version not found for $audioFile, falling back to short version.');
+          debugPrint('⚠️ SoundService: Long version not found for $audioFile, falling back to short.');
           final fallbackPath = audioFile.startsWith('assets/audio/') ? audioFile : 'assets/audio/$audioFile';
           await _setSourceAndPlay(fallbackPath);
         } else {
-          rethrow; // If short version also fails, let the outer catch handle it
+          rethrow;
         }
       }
     } catch (e) {
@@ -89,20 +77,62 @@ class SoundService {
     }
   }
 
-  /// Helper to handle source selection and playback
+  /// Play letter followed by its corresponding word audio sequentially.
+  static Future<void> playLetterAndWord(String letterAudio, String wordAudio) async {
+    if (_isBusy) return;
+    _isBusy = true;
+
+    try {
+      await _playSequence([letterAudio, wordAudio]);
+    } catch (e) {
+      debugPrint('❌ SoundService Sequence Playback Error: $e');
+    } finally {
+      _isBusy = false;
+    }
+  }
+
+  static Future<void> _playSequence(List<String> files) async {
+    for (var file in files) {
+      if (file.isEmpty) continue;
+
+      String finalFile = file;
+      final format = await PreferencesService.getAudioFormat();
+      if (format == AudioFormat.long && !file.contains('_long') && !file.contains('_word')) {
+        finalFile = file.replaceAll('.ogg', '_long.ogg');
+      }
+
+      final path = finalFile.startsWith('assets/audio/') ? finalFile : 'assets/audio/$finalFile';
+
+      try {
+        await _setSourceAndPlay(path);
+        // Wait for the current audio to finish before starting the next one
+        await _player.playerStateStream.firstWhere(
+          (state) => state.processingState == ProcessingState.completed
+        ).timeout(const Duration(seconds: 5));
+      } catch (e) {
+        debugPrint('⚠️ Sequence element $file failed or timed out: $e');
+      }
+    }
+  }
+
   static Future<void> _setSourceAndPlay(String path) async {
-    final source = _audioCache[path];
+    // Remove leading 'assets/' if we are on web because the engine adds it automatically
+    String finalPath = path;
+    if (kIsWeb && finalPath.startsWith('assets/')) {
+      finalPath = finalPath.substring(7);
+    }
+
+    final source = _audioCache[finalPath];
     if (source != null) {
       await _player.setAudioSource(source);
     } else {
-      await _player.setAsset(path);
-      _audioCache[path] = AudioSource.asset(path);
+      await _player.setAsset(finalPath);
+      _audioCache[finalPath] = AudioSource.asset(finalPath);
     }
     await _player.play();
   }
 
   static Future<void> stop() async {
-    if (kIsWeb) return;
     try {
       await _player.stop();
     } catch (e) {

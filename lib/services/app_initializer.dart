@@ -6,7 +6,7 @@ class AppInitializer {
   static Future<void> init() async {
     if (!kIsWeb) {
       await MobileAds.instance.initialize();
-      await SoundService.init();
     }
+    await SoundService.init();
   }
 }

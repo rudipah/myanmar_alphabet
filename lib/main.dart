@@ -20,7 +20,13 @@ Future<void> main() async {
   ]);
 
   // Initialize ads
-  await MobileAds.instance.initialize();
+  if (!kIsWeb) {
+    try {
+      await MobileAds.instance.initialize();
+    } catch (e) {
+      debugPrint("AdMob initialization failed: $e");
+    }
+  }
   try {
     await AppInitializer.init();
   } catch (e) {

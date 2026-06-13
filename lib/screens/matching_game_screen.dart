@@ -58,6 +58,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
               image: null,
               id: card.letter,
               audio: card.audio,
+              wordAudio: card.descriptionAudio, // Use descriptionAudio as the word sound
               type: CardType.letter));
           // Add the image card
           gameDeck.add(GameCard(
@@ -65,6 +66,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
               image: card.image,
               id: card.letter,
               audio: card.audio,
+              wordAudio: card.descriptionAudio, // Use descriptionAudio as the word sound
               type: CardType.image));
         }
 
@@ -105,9 +107,11 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
       });
       // Save progress
       PreferencesService.incrementLetterProgress(firstCard.id ?? '');
-      // Success sound
-      SoundService.playLetter(
-          firstCard.audio ?? ''); // Use the audio file for success sound
+      // Success sound: play letter then word
+      SoundService.playLetterAndWord(
+          firstCard.audio ?? '',
+          firstCard.wordAudio ?? '',
+      );
 
       Future.delayed(const Duration(milliseconds: 600), () {
         setState(() {
@@ -356,8 +360,9 @@ class GameCard {
   final String? image;
   final String? id;
   final String? audio;
+  final String? wordAudio; // Added word audio
   final CardType type;
   bool isMatched;
 
-  GameCard({this.letter, this.image, this.id, this.audio, required this.type, this.isMatched = false});
+  GameCard({this.letter, this.image, this.id, this.audio, this.wordAudio, required this.type, this.isMatched = false});
 }

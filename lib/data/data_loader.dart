@@ -571,7 +571,7 @@ class DataLoader {
           letter: 'ထ',
           pronunciation: 'ထ (hta)',
           image: 'assets/images/hta.png',
-          audio: 'hta1.ogg',
+          audio: 'hta2.ogg',
           descriptionAudio: 'hta_word.ogg',
           description: 'Umbrella',
           word: 'ထီး'),
