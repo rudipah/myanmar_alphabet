@@ -36,6 +36,15 @@ class TracingBoard extends StatelessWidget {
             letter: letter,
             letterColor: color,
             onDrawStart: onDrawStart,
+            onStrokeValidated: (success) {
+              if (success) {
+                // Here you would normally play a success sound or 
+                // trigger a "correct!" animation.
+                debugPrint('Stroke validated successfully!');
+              } else {
+                debugPrint('Stroke failed validation.');
+              }
+            },
           ),
         ],
       ),

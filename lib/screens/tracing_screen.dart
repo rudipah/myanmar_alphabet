@@ -5,6 +5,9 @@ import '../widgets/tracing_canvas.dart';
 import '../services/sound_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../utils/ad_helper.dart';
+import 'package:confetti/confetti.dart';
+import '../utils/app_colors.dart';
+import '../services/preferences_service.dart';
 
 class TracingScreen extends StatefulWidget {
   final MyanmarLetter letter;
@@ -22,18 +25,65 @@ class _TracingScreenState extends State<TracingScreen>
 
   bool _hasDrawn = false;
   bool _isSpeaking = false;
-  BannerAd? _bannerAd;
-  bool _isBannerReady = false;
   late AnimationController _celebrateController;
   late Animation<double> _scaleAnim;
   late Animation<double> _glowAnim;
+  late ConfettiController _confettiController;
 
-  ButtonStyle _outlineButtonStyle(Color color) {
-    return OutlinedButton.styleFrom(
-      side: BorderSide(color: color.withOpacity(0.6), width: 2),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      foregroundColor: color,
+  void _showErrorPopup() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.elasticOut,
+          builder: (context, value, child) {
+            return Transform.scale(scale: value, child: child);
+          },
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.redAccent,
+                  size: 60,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "Not quite right!",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Try to follow the guides more closely!",
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Try Again", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -66,13 +116,6 @@ class _TracingScreenState extends State<TracingScreen>
                   "Great Job!",
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                // const SizedBox(height: 8),
-                // Text(
-                //   "You traced it correctly 🎉",
-                //   style: TextStyle(
-                //     color: Colors.grey[600],
-                //   ),
-                // ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -82,8 +125,8 @@ class _TracingScreenState extends State<TracingScreen>
                     ),
                   ),
                   onPressed: () {
-                    Navigator.pop(context); // close popup
-                    onContinue(); // continue to next letter
+                    Navigator.pop(context);
+                    onContinue();
                   },
                   child: const Text("Continue"),
                 ),
@@ -112,23 +155,12 @@ class _TracingScreenState extends State<TracingScreen>
       CurvedAnimation(parent: _celebrateController, curve: Curves.easeOut),
     );
 
-    _bannerAd = AdHelper.createBannerAd(
-      onAdLoaded: (ad) {
-        print("Ad Loaded ✅");
-        setState(() => _isBannerReady = true);
-      },
-      onAdFailedToLoad: (ad, error) {
-        print("Ad Failed ❌: $error");
-        ad.dispose();
-      },
-    );
-
-    _bannerAd?.load();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 2));
   }
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
@@ -141,17 +173,25 @@ class _TracingScreenState extends State<TracingScreen>
     setState(() => _hasDrawn = false);
   }
 
-  void _onDone() {
+  void _onDone() async {
     if (!_hasDrawn) return;
+
+    final canvasState = _canvasKey.currentState;
+    if (canvasState != null && !canvasState.isFullyValidated()) {
+      _showErrorPopup();
+      return;
+    }
 
     HapticFeedback.mediumImpact();
 
     _celebrateController.forward(from: 0);
+    _confettiController.play();
+
+    await PreferencesService.incrementLetterProgress(widget.letter.character);
 
     _showSuccessPopup(() {
       _canvasKey.currentState?.clear();
       setState(() => _hasDrawn = false);
-
       widget.onNext();
     });
   }
@@ -179,13 +219,11 @@ class _TracingScreenState extends State<TracingScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // ================= HEADER =================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // 🏠 Home
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.home_rounded, size: 28),
@@ -197,19 +235,14 @@ class _TracingScreenState extends State<TracingScreen>
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 20),
-
-                  // 🔤 Letter Badge
                   Container(
-                    padding: const EdgeInsets.all(
-                      12,
-                    ), // 👈 same as sound button
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: BorderRadius.circular(12), // 👈 same radius
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: color.withOpacity(0.4), // 👈 same style
+                        color: color.withOpacity(0.4),
                         width: 2,
                       ),
                     ),
@@ -223,10 +256,7 @@ class _TracingScreenState extends State<TracingScreen>
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 20),
-
-                  // 📘 Letter Info (beside badge)
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,8 +289,6 @@ class _TracingScreenState extends State<TracingScreen>
                       ],
                     ),
                   ),
-
-                  // 🔊 Sound Button
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.all(6),
@@ -301,55 +329,68 @@ class _TracingScreenState extends State<TracingScreen>
                 ],
               ),
             ),
-
-            // ================= DRAW AREA =================
             Expanded(
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: AspectRatio(
-                    aspectRatio: 1, // ✅ makes it square
-                    child: AnimatedBuilder(
-                      animation: _celebrateController,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: _scaleAnim.value,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFFDF5),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: Colors.grey.withOpacity(0.2),
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(
-                                    0xFF6C5CE7,
-                                  ).withOpacity(_glowAnim.value),
-                                  blurRadius: 25,
-                                  spreadRadius: 3,
+                    aspectRatio: 1,
+                    child: Stack(
+                      children: [
+                        AnimatedBuilder(
+                          animation: _celebrateController,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: _scaleAnim.value,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFFDF5),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(_glowAnim.value),
+                                      blurRadius: 25,
+                                      spreadRadius: 3,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            clipBehavior: Clip.hardEdge,
-                            child: child,
+                                clipBehavior: Clip.hardEdge,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: TracingCanvas(
+                            key: _canvasKey,
+                            letter: widget.letter.character,
+                            letterColor: Color(widget.letter.colorValue),
+                            onDrawStart: _onDrawStart,
+                            onStrokeValidated: (success) {
+                              if (success) {
+                                HapticFeedback.lightImpact();
+                              }
+                            },
                           ),
-                        );
-                      },
-                      child: TracingCanvas(
-                        key: _canvasKey,
-                        letter: widget.letter.character,
-                        letterColor: Color(widget.letter.colorValue),
-                        onDrawStart: _onDrawStart,
-                      ),
+                        ),
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: ConfettiWidget(
+                            confettiController: _confettiController,
+                            shouldLoop: false,
+                            maxBlastForce: 20,
+                            minBlastForce: 10,
+                            numberOfParticles: 20,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-
-            // ================= BUTTONS =================
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -406,15 +447,49 @@ class _TracingScreenState extends State<TracingScreen>
                 ],
               ),
             ),
-            if (_isBannerReady && _bannerAd != null)
-              SizedBox(
-                width: _bannerAd!.size.width.toDouble(),
-                height: _bannerAd!.size.height.toDouble(),
-                child: AdWidget(ad: _bannerAd!),
-              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class TracingScreenWithNav extends StatefulWidget {
+  final List<MyanmarLetter> items;
+  final int startIndex;
+
+  const TracingScreenWithNav({
+    super.key,
+    required this.items,
+    required this.startIndex,
+  });
+
+  @override
+  State<TracingScreenWithNav> createState() => _TracingScreenWithNavState();
+}
+
+class _TracingScreenWithNavState extends State<TracingScreenWithNav> {
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.startIndex;
+  }
+
+  void _nextLetter() {
+    if (_currentIndex < widget.items.length - 1) {
+      setState(() => _currentIndex++);
+    } else {
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TracingScreen(
+      letter: widget.items[_currentIndex],
+      onNext: _nextLetter,
     );
   }
 }

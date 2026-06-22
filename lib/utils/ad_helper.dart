@@ -32,11 +32,14 @@ class AdHelper {
   }
 
   // ---- Initialize AdMob ----
+  /*
   static Future<void> initialize() async {
     await MobileAds.instance.initialize();
   }
+  */
 
   // ---- Create Banner Ad ----
+  /*
   static BannerAd createBannerAd({
     required void Function(Ad, LoadAdError) onAdFailedToLoad,
     required void Function(Ad) onAdLoaded,
@@ -53,4 +56,5 @@ class AdHelper {
       ),
     );
   }
+  */
 }

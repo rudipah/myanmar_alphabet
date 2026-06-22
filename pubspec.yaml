@@ -1,7 +1,7 @@
 name: myanmar_alphabet
 description: Learn Myanmar Alphabet app for children
 publish_to: 'none'
-version: 1.0.1+2
+version: 1.0.3+4
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -12,6 +12,8 @@ dependencies:
   confetti: ^0.7.0
   google_mobile_ads: ^5.1.0
   just_audio: ^0.9.40
+  shared_preferences: ^2.2.3
+  
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1
@@ -38,6 +40,9 @@ flutter:
 
   assets:
     - assets/audio/
+    - assets/images/
+    - assets/data/
+    - assets/fonts/
 
   fonts:
     - family: Pyidaungsu

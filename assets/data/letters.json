@@ -1,0 +1,235 @@
+{
+  "letters": [
+    {
+      "character": "က",
+      "name": "ka",
+      "emoji": "🐱",
+      "colorValue": "0xFFFF6B6B",
+      "audioFile": "ka.ogg"
+    },
+    {
+      "character": "ခ",
+      "name": "kha",
+      "emoji": "🐶",
+      "colorValue": "0xFFFF9F43",
+      "audioFile": "kha.ogg"
+    },
+    {
+      "character": "ဂ",
+      "name": "ga",
+      "emoji": "🐸",
+      "colorValue": "0xFF54A0FF",
+      "audioFile": "ga.ogg"
+    },
+    {
+      "character": "ဃ",
+      "name": "gha",
+      "emoji": "🦋",
+      "colorValue": "0xFF5F27CD",
+      "audioFile": "gha.ogg"
+    },
+    {
+      "character": "င",
+      "name": "nga",
+      "emoji": "🐠",
+      "colorValue": "0xFF00D2D3",
+      "audioFile": "nga.ogg"
+    },
+    {
+      "character": "စ",
+      "name": "sa",
+      "emoji": "🌸",
+      "colorValue": "0xFFFF6B9D",
+      "audioFile": "sa.ogg"
+    },
+    {
+      "character": "ဆ",
+      "name": "hsa",
+      "emoji": "🐢",
+      "colorValue": "0xFF26DE81",
+      "audioFile": "hsa.ogg"
+    },
+    {
+      "character": "ဇ",
+      "name": "za",
+      "emoji": "🦊",
+      "colorValue": "0xFFFD9644",
+      "audioFile": "za.ogg"
+    },
+    {
+      "character": "ဈ",
+      "name": "zha",
+      "emoji": "🦅",
+      "colorValue": "0xFFE17055",
+      "audioFile": "zha.ogg"
+    },
+    {
+      "character": "ည",
+      "name": "nya",
+      "emoji": "🌙",
+      "colorValue": "0xFF6C5CE7",
+      "audioFile": "nya.ogg"
+    },
+    {
+      "character": "ဋ",
+      "name": "ta",
+      "emoji": "🐯",
+      "colorValue": "0xFFFF7675",
+      "audioFile": "ta1.ogg"
+    },
+    {
+      "character": "ဌ",
+      "name": "hta",
+      "emoji": "🦁",
+      "colorValue": "0xFFFDAB10",
+      "audioFile": "hta1.ogg"
+    },
+    {
+      "character": "ဍ",
+      "name": "da",
+      "emoji": "🐻",
+      "colorValue": "0xFF00CEC9",
+      "audioFile": "da1.ogg"
+    },
+    {
+      "character": "ဎ",
+      "name": "dha",
+      "emoji": "🐼",
+      "colorValue": "0xFFA29BFE",
+      "audioFile": "dha1.ogg"
+    },
+    {
+      "character": "ဏ",
+      "name": "na",
+      "emoji": "🦒",
+      "colorValue": "0xFFFF4DA6",
+      "audioFile": "na1.ogg"
+    },
+    {
+      "character": "တ",
+      "name": "ta",
+      "emoji": "🐘",
+      "colorValue": "0xFF55EFC4",
+      "audioFile": "ta2.ogg"
+    },
+    {
+      "character": "ထ",
+      "name": "hta",
+      "emoji": "🦓",
+      "colorValue": "0xFFFF6348",
+      "audioFile": "hta2.ogg"
+    },
+    {
+      "character": "ဒ",
+      "name": "da",
+      "emoji": "🦏",
+      "colorValue": "0xFF7BED9F",
+      "audioFile": "da2.ogg"
+    },
+    {
+      "character": "ဓ",
+      "name": "dha",
+      "emoji": "🐊",
+      "colorValue": "0xFF70A1FF",
+      "audioFile": "dha2.ogg"
+    },
+    {
+      "character": "န",
+      "name": "na",
+      "emoji": "🌻",
+      "colorValue": "0xFFFD79A8",
+      "audioFile": "na2.ogg"
+    },
+    {
+      "character": "ပ",
+      "name": "pa",
+      "emoji": "🦜",
+      "colorValue": "0xFF6C5CE7",
+      "audioFile": "pa.ogg"
+    },
+    {
+      "character": "ဖ",
+      "name": "pha",
+      "emoji": "🦚",
+      "colorValue": "0xFFE84393",
+      "audioFile": "pha.ogg"
+    },
+    {
+      "character": "ဗ",
+      "name": "ba",
+      "emoji": "🦩",
+      "colorValue": "0xFF0984E3",
+      "audioFile": "ba.ogg"
+    },
+    {
+      "character": "ဘ",
+      "name": "bha",
+      "emoji": "🦋",
+      "colorValue": "0xFF00B894",
+      "audioFile": "bha.ogg"
+    },
+    {
+      "character": "မ",
+      "name": "ma",
+      "emoji": "🐵",
+      "colorValue": "0xFFA29BFE",
+      "audioFile": "ma.ogg"
+    },
+    {
+      "character": "ယ",
+      "name": "ya",
+      "emoji": "🌈",
+      "colorValue": "0xFF00B894",
+      "audioFile": "ya.ogg"
+    },
+    {
+      "character": "ရ",
+      "name": "ya",
+      "emoji": "🦊",
+      "colorValue": "0xFFFF4757",
+      "audioFile": "ya1.ogg"
+    },
+    {
+      "character": "လ",
+      "name": "la",
+      "emoji": "🌺",
+      "colorValue": "0xFF2ED573",
+      "audioFile": "la.ogg"
+    },
+    {
+      "character": "ဝ",
+      "name": "wa",
+      "emoji": "🐋",
+      "colorValue": "0xFF1E90FF",
+      "audioFile": "wa.ogg"
+    },
+    {
+      "character": "သ",
+      "name": "tha",
+      "emoji": "🌟",
+      "colorValue": "0xFFFFD32A",
+      "audioFile": "tha.ogg"
+    },
+    {
+      "character": "ဟ",
+      "name": "ha",
+      "emoji": "🦁",
+      "colorValue": "0xFFFF6B81",
+      "audioFile": "ha.ogg"
+    },
+    {
+      "character": "ဠ",
+      "name": "lla",
+      "emoji": "🌴",
+      "colorValue": "0xFF3AE374",
+      "audioFile": "lla.ogg"
+    },
+    {
+      "character": "အ",
+      "name": "a",
+      "emoji": "⭐",
+      "colorValue": "0xFFECCC68",
+      "audioFile": "a.ogg"
+    }
+  ]
+}

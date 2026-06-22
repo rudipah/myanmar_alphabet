@@ -1,5 +1,16 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
+import 'flashcard_screen.dart'; // Import the flashcard screen
+import 'quiz_screen.dart'; // Import the quiz screen
+import 'matching_game_screen.dart'; // Import the matching game screen
+import 'settings_screen.dart'; // Import settings screen
+import '../data/data_loader.dart'; // Import data loader
+import '../models/flashcard.dart'; // Flashcard model type
+import '../services/sound_service.dart'; // Import sound service
+import '../utils/app_colors.dart';
+import '../utils/navigator_util.dart';
+import '../widgets/menu_button.dart';
+import 'progress_screen.dart'; // Import the progress screen
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -14,9 +25,15 @@ class _MenuScreenState extends State<MenuScreen>
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
 
+  // Flashcards list from loader
+  late List<Flashcard> flashcards;
+  Flashcard? _dailyLetter;
+
   @override
   void initState() {
     super.initState();
+
+    // Initialize animations first (before async data loading)
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -32,7 +49,31 @@ class _MenuScreenState extends State<MenuScreen>
       parent: _animController,
       curve: Curves.easeOut,
     ));
-    _animController.forward();
+
+    // Load flashcards from JSON
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    // Load flashcards from JSON
+    flashcards = await DataLoader.loadFlashcards();
+
+    // Use a simpler deterministic seed - use letter index based on date
+    final now = DateTime.now();
+    if (flashcards.isNotEmpty) {
+      // Use month-day combination as index (never zero)
+      final index = ((now.month + now.day) % flashcards.length);
+      setState(() {
+        _dailyLetter = flashcards[index];
+      });
+    }
+
+    // Start animations after data is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _animController.forward();
+      }
+    });
   }
 
   @override
@@ -41,14 +82,38 @@ class _MenuScreenState extends State<MenuScreen>
     super.dispose();
   }
 
-  void _navigate(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-    );
+  void _navigateToHome(BuildContext context) {
+    NavigatorUtil.push(context, const HomeScreen());
   }
+
+  void _navigateToFlashcards(BuildContext context) {
+    NavigatorUtil.push(context, const FlashcardScreen());
+  }
+
+  void _navigateToQuiz(BuildContext context) {
+    NavigatorUtil.push(context, const QuizScreen());
+  }
+
+  void _navigateToMatchingGame(BuildContext context) {
+    NavigatorUtil.push(context, const MatchingGameScreen());
+  }
+
+  void _navigateToSettings(BuildContext context) {
+    NavigatorUtil.push(context, const SettingsScreen());
+  }
+
+  void _navigateToProgress(BuildContext context) {
+    NavigatorUtil.push(context, const ProgressScreen());
+  }
+
+  // void _navigateToProgress(BuildContext context) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (_) => const ProgressScreen(),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +126,8 @@ class _MenuScreenState extends State<MenuScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF6C5CE7),
-              Color(0xFF9B8FF5),
+              AppColors.primary,
+              AppColors.primaryLight,
               Color(0xFFA29BFE),
             ],
           ),
@@ -72,7 +137,7 @@ class _MenuScreenState extends State<MenuScreen>
             opacity: _fadeAnim,
             child: SlideTransition(
               position: _slideAnim,
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -82,10 +147,10 @@ class _MenuScreenState extends State<MenuScreen>
                       width: 110,
                       height: 110,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha:0.2),
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha:0.4),
                           width: 2,
                         ),
                       ),
@@ -104,7 +169,45 @@ class _MenuScreenState extends State<MenuScreen>
 
                     const SizedBox(height: 24),
 
+                    // ---- Letter of the Day Section ----
+                    GestureDetector(
+                      onTap: () {
+                        SoundService.playLetter(_dailyLetter?.audio ?? 'a.ogg');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha:0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withValues(alpha:0.5), width: 1.5),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "🌟 Letter of the Day: ",
+                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                            ),
+                            Text(
+                              (_dailyLetter?.letter ?? '؟'),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Pyidaungsu',
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.volume_up, color: Colors.white, size: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
                     // ---- Title ----
+
                     const Text(
                       'Learn Myanmar Alphabet',
                       style: TextStyle(
@@ -119,47 +222,71 @@ class _MenuScreenState extends State<MenuScreen>
                       'Tap start to begin learning',
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha:0.8),
                       ),
                     ),
 
                     const SizedBox(height: 52),
 
-                    // ---- Start button ----
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(24),
-                        onTap: () => _navigate(context),
-                        child: Ink(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.12),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text(
-                              '✏️  Start Learning',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF6C5CE7),
+                    // ---- Buttons ----
+                    Column(
+                      children: [
+                        // Primary Action: Start Learning
+                        MenuButton(
+                          label: 'Start Learning',
+                          icon: const Text('✏️', style: TextStyle(fontSize: 22)),
+                          onTap: () => _navigateToHome(context),
+                          isPrimary: false,
+                        ),
+                        const SizedBox(height: 30),
+
+                        // Game Modes Grid
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 20,
+                          mainAxisSpacing: 20,
+                          childAspectRatio: 2.2,
+                          children: [
+                            MenuButton(
+                              label: 'Flashcards',
+                              icon: const Text('📚', style: TextStyle(fontSize: 22)),
+                              onTap: () => _navigateToFlashcards(context),
+                            ),
+                            MenuButton(
+                              label: 'Quiz Time',
+                              icon: const Text('🎯', style: TextStyle(fontSize: 22)),
+                              onTap: () => _navigateToQuiz(context),
+                            ),
+                            MenuButton(
+                              label: 'Matching',
+                              icon: const Text('🧩', style: TextStyle(fontSize: 22)),
+                              onTap: () => _navigateToMatchingGame(context),
+                            ),
+                            MenuButton(
+                              label: 'Progress',
+                              icon: const Text('📊', style: TextStyle(fontSize: 22)),
+                              onTap: () => _navigateToProgress(context),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+
+                        // Utilities Row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: MenuButton(
+                                label: 'Settings',
+                                icon: const Text('⚙️', style: TextStyle(fontSize: 22)),
+                                onTap: () => _navigateToSettings(context),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      ),
+                      ],
                     ),
-
-                    const SizedBox(height: 52),
                   ],
                 ),
               ),

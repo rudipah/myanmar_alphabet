@@ -1,0 +1,25 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
+enum AudioFormat { short, long }
+
+class PreferencesService {
+  static const String _audioFormatKey = 'audio_format';
+
+  /// Set the preferred audio format (short or long)
+  static Future<void> setAudioFormat(AudioFormat format) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_audioFormatKey, format.name);
+  }
+
+  /// Get the currently preferred audio format
+  static Future<AudioFormat> getAudioFormat() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(_audioFormatKey);
+    if (value == null) return AudioFormat.short; // Default to short
+
+    return AudioFormat.values.firstWhere(
+      (format) => format.name == value,
+      orElse: () => AudioFormat.short,
+    );
+  }
+}
