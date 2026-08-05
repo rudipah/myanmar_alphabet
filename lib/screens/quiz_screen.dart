@@ -6,6 +6,7 @@ import '../services/sound_service.dart';
 import '../models/flashcard.dart';
 import '../utils/app_colors.dart';
 import '../services/preferences_service.dart';
+import '../services/ad_manager.dart';
 
 enum QuizMode { visual, audio }
 
@@ -25,6 +26,7 @@ class _QuizScreenState extends State<QuizScreen> {
   bool isAnswered = false;
   QuizMode currentMode = QuizMode.visual;
   List<Flashcard> _flashcards = [];
+  bool isLoading = true; // Added loading state
 
   @override
   void initState() {
@@ -62,6 +64,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
       options = [correctCard, ...wrongOptions];
       options.shuffle();
+      isLoading = false; // Mark loading as complete
     });
 
     // Automatically play sound if in Audio mode
@@ -136,6 +139,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () {
+                      AdManager.instance.showInterstitialAd();
                       Navigator.pop(context);
                       Navigator.pop(context);
                     },
@@ -172,6 +176,15 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF0EEFF),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF0EEFF),
       body: SafeArea(

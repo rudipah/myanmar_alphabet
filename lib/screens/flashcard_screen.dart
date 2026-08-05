@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../data/flashcard_data.dart';
 import '../data/data_loader.dart';
 import '../services/sound_service.dart';
 import '../models/flashcard.dart';
 import '../utils/app_colors.dart';
+import '../services/ad_manager.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class FlashcardScreen extends StatefulWidget {
   const FlashcardScreen({super.key});
@@ -16,6 +17,21 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   int currentIndex = 0;
   bool isFlipped = false;
   List<Flashcard> _flashcards = [];
+  BannerAd? _bannerAd;
+
+  void _loadBannerAd() {
+    _bannerAd = AdManager.instance.createBannerAd(
+      onAdLoaded: (ad) {
+        setState(() {});
+        debugPrint('AdMob Banner loaded on FlashcardScreen');
+      },
+      onAdFailedToLoad: (ad, error) {
+        ad.dispose();
+        debugPrint('AdMob Banner failed to load on FlashcardScreen: $error');
+      },
+    );
+    _bannerAd!.load();
+  }
 
   Flashcard get currentCard => _flashcards.isNotEmpty ? _flashcards[currentIndex] : Flashcard.empty();
 
@@ -36,6 +52,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   void initState() {
     super.initState();
     _loadFlashcards();
+    _loadBannerAd();
   }
 
   void _nextCard() {
@@ -67,9 +84,22 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   }
 
   @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0EEFF),
+      bottomNavigationBar: _bannerAd != null
+          ? SizedBox(
+              height: _bannerAd!.size.height.toDouble().clamp(0, 100),
+              width: _bannerAd!.size.width.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            )
+          : const SizedBox.shrink(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -80,7 +110,10 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _buildNavButton(Icons.arrow_back_ios_rounded, () => Navigator.pop(context)),
+                  _buildNavButton(Icons.arrow_back_ios_rounded, () {
+                    AdManager.instance.showInterstitialAd();
+                    Navigator.pop(context);
+                  }),
                   const SizedBox(width: 12),
                   const Text(
                     "Flashcards",
@@ -176,7 +209,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.white, Colors.indigo.withOpacity(0.05)],
+            colors: [Colors.white, Colors.indigo.withValues(alpha: 0.05)],
           ),
         ),
         child: Text(

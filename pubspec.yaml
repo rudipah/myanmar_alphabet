@@ -13,6 +13,9 @@ dependencies:
   google_mobile_ads: ^5.1.0
   just_audio: ^0.9.40
   shared_preferences: ^2.2.3
+  unity_ads_plugin: ^0.3.20
+  advertising_id: ^2.7.0
+
   
 
 dev_dependencies:

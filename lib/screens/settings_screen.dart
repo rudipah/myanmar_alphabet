@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/preferences_service.dart';
 import '../utils/app_colors.dart';
+import '../services/ad_manager.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,11 +14,27 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   AudioFormat _currentFormat = AudioFormat.long;
   bool _isLoading = true;
+  BannerAd? _bannerAd;
+
+  void _loadBannerAd() {
+    _bannerAd = AdManager.instance.createBannerAd(
+      onAdLoaded: (ad) {
+        setState(() {});
+        debugPrint('AdMob Banner loaded on SettingsScreen');
+      },
+      onAdFailedToLoad: (ad, error) {
+        ad.dispose();
+        debugPrint('AdMob Banner failed to load on SettingsScreen: $error');
+      },
+    );
+    _bannerAd!.load();
+  }
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    _loadBannerAd();
   }
 
   Future<void> _loadSettings() async {
@@ -66,6 +84,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -73,6 +97,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
+      bottomNavigationBar: _bannerAd != null
+          ? SizedBox(
+              height: _bannerAd!.size.height.toDouble().clamp(0, 100),
+              width: _bannerAd!.size.width.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            )
+          : const SizedBox.shrink(),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(

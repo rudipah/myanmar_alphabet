@@ -6,6 +6,7 @@ import '../services/sound_service.dart';
 import '../models/flashcard.dart';
 import '../utils/app_colors.dart';
 import '../services/preferences_service.dart';
+import '../services/ad_manager.dart';
 
 class MatchingGameScreen extends StatefulWidget {
   const MatchingGameScreen({super.key});
@@ -176,6 +177,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
+                    AdManager.instance.showInterstitialAd();
                     Navigator.pop(context);
                     Navigator.pop(context);
                   },

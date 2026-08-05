@@ -3,6 +3,8 @@ import '../models/letter.dart';
 import '../data/data_loader.dart';
 import '../utils/app_colors.dart';
 import '../services/preferences_service.dart';
+import '../services/ad_manager.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -16,11 +18,27 @@ class _ProgressScreenState extends State<ProgressScreen> {
   List<MyanmarLetter> _numbers = [];
   Map<String, int> _letterProgress = {};
   bool _isLoading = true;
+  BannerAd? _bannerAd;
+
+  void _loadBannerAd() {
+    _bannerAd = AdManager.instance.createBannerAd(
+      onAdLoaded: (ad) {
+        setState(() {});
+        debugPrint('AdMob Banner loaded on ProgressScreen');
+      },
+      onAdFailedToLoad: (ad, error) {
+        ad.dispose();
+        debugPrint('AdMob Banner failed to load on ProgressScreen: $error');
+      },
+    );
+    _bannerAd!.load();
+  }
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _loadBannerAd();
   }
 
   Future<void> _loadData() async {
@@ -153,9 +171,22 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0EEFF),
+      bottomNavigationBar: _bannerAd != null
+          ? SizedBox(
+              height: _bannerAd!.size.height.toDouble().clamp(0, 100),
+              width: _bannerAd!.size.width.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            )
+          : const SizedBox.shrink(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),

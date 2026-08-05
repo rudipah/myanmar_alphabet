@@ -11,6 +11,8 @@ import '../utils/app_colors.dart';
 import '../utils/navigator_util.dart';
 import '../widgets/menu_button.dart';
 import 'progress_screen.dart'; // Import the progress screen
+import '../services/ad_manager.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -24,6 +26,21 @@ class _MenuScreenState extends State<MenuScreen>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
+  BannerAd? _bannerAd;
+
+  void _loadBannerAd() {
+    _bannerAd = AdManager.instance.createBannerAd(
+      onAdLoaded: (ad) {
+        setState(() {});
+        debugPrint('AdMob Banner loaded on MenuScreen');
+      },
+      onAdFailedToLoad: (ad, error) {
+        ad.dispose();
+        debugPrint('AdMob Banner failed to load on MenuScreen: $error');
+      },
+    );
+    _bannerAd!.load();
+  }
 
   // Flashcards list from loader
   late List<Flashcard> flashcards;
@@ -52,6 +69,7 @@ class _MenuScreenState extends State<MenuScreen>
 
     // Load flashcards from JSON
     _loadData();
+    _loadBannerAd();
   }
 
   Future<void> _loadData() async {
@@ -79,6 +97,7 @@ class _MenuScreenState extends State<MenuScreen>
   @override
   void dispose() {
     _animController.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -118,6 +137,13 @@ class _MenuScreenState extends State<MenuScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: _bannerAd != null
+          ? SizedBox(
+              height: _bannerAd!.size.height.toDouble().clamp(0, 100),
+              width: _bannerAd!.size.width.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            )
+          : const SizedBox.shrink(),
       body: Container(
         width: double.infinity,
         height: double.infinity,
