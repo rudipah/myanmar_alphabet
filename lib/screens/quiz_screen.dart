@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
-import '../data/flashcard_data.dart';
 import '../data/data_loader.dart';
 import '../services/sound_service.dart';
 import '../models/flashcard.dart';
 import '../utils/app_colors.dart';
 import '../services/preferences_service.dart';
 import '../services/ad_manager.dart';
+import '../widgets/banner_ad_widget.dart';
+import '../widgets/nav_icon_button.dart';
 
 enum QuizMode { visual, audio }
 
@@ -22,11 +24,11 @@ class _QuizScreenState extends State<QuizScreen> {
   int score = 0;
   late Flashcard correctCard;
   late List<Flashcard> options;
-  int? clickedIndex; // null: not answered, stores the index of the chosen option
+  int? clickedIndex;
   bool isAnswered = false;
   QuizMode currentMode = QuizMode.visual;
   List<Flashcard> _flashcards = [];
-  bool isLoading = true; // Added loading state
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -34,7 +36,6 @@ class _QuizScreenState extends State<QuizScreen> {
     _loadFlashcards().then((_) => _generateQuestion());
   }
 
-  /// Load flashcards from JSON or use hardcoded fallback
   Future<void> _loadFlashcards() async {
     try {
       _flashcards = await DataLoader.loadFlashcards();
@@ -49,11 +50,9 @@ class _QuizScreenState extends State<QuizScreen> {
       isAnswered = false;
       clickedIndex = null;
 
-      // Pick a random card as the correct answer
       final random = Random();
       correctCard = _flashcards[random.nextInt(_flashcards.length)];
 
-      // Create a list of options (correct + 3 random distractors)
       List<Flashcard> wrongOptions = [];
       while (wrongOptions.length < 3) {
         final randomCard = _flashcards[random.nextInt(_flashcards.length)];
@@ -64,10 +63,9 @@ class _QuizScreenState extends State<QuizScreen> {
 
       options = [correctCard, ...wrongOptions];
       options.shuffle();
-      isLoading = false; // Mark loading as complete
+      isLoading = false;
     });
 
-    // Automatically play sound if in Audio mode
     if (currentMode == QuizMode.audio) {
       SoundService.playLetter(correctCard.audio);
     }
@@ -76,10 +74,19 @@ class _QuizScreenState extends State<QuizScreen> {
   void _checkAnswer(int index) {
     if (isAnswered) return;
 
+    final isCorrect = options[index].letter == correctCard.letter;
+
+    // Haptic feedback
+    if (isCorrect) {
+      HapticFeedback.mediumImpact();
+    } else {
+      HapticFeedback.heavyImpact();
+    }
+
     setState(() {
       isAnswered = true;
       clickedIndex = index;
-      if (options[index].letter == correctCard.letter) {
+      if (isCorrect) {
         score++;
         PreferencesService.incrementLetterProgress(correctCard.letter);
       }
@@ -96,6 +103,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _showResultDialog() {
+    PreferencesService.recordStudyActivity(); // finished a full quiz round
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -104,28 +112,24 @@ class _QuizScreenState extends State<QuizScreen> {
           tween: Tween(begin: 0.0, end: 1.0),
           duration: const Duration(milliseconds: 300),
           curve: Curves.elasticOut,
-          builder: (context, value, child) {
-            return Transform.scale(scale: value, child: child);
-          },
+          builder: (context, value, child) =>
+              Transform.scale(scale: value, child: child),
           child: AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.emoji_events,
-                  color: Colors.amber,
-                  size: 60,
-                ),
+                const Icon(Icons.emoji_events, color: Colors.amber, size: 60),
                 const SizedBox(height: 12),
                 const Text(
-                  "Quiz Complete!",
+                  'Quiz Complete!',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "You scored $score out of 10!",
+                  'You scored $score out of 10!',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey[600], fontSize: 18),
                 ),
@@ -136,14 +140,15 @@ class _QuizScreenState extends State<QuizScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () {
                       AdManager.instance.showInterstitialAd();
                       Navigator.pop(context);
                       Navigator.pop(context);
                     },
-                    child: const Text("Back to Menu"),
+                    child: const Text('Back to Menu'),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -153,7 +158,8 @@ class _QuizScreenState extends State<QuizScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () {
                       Navigator.pop(context);
@@ -163,7 +169,7 @@ class _QuizScreenState extends State<QuizScreen> {
                         _generateQuestion();
                       });
                     },
-                    child: const Text("Try Again"),
+                    child: const Text('Try Again'),
                   ),
                 ),
               ],
@@ -177,8 +183,8 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Scaffold(
-        backgroundColor: const Color(0xFFF0EEFF),
+      return const Scaffold(
+        backgroundColor: Color(0xFFF0EEFF),
         body: Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
@@ -187,19 +193,23 @@ class _QuizScreenState extends State<QuizScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0EEFF),
+      bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // ---- Header ----
               Row(
                 children: [
-                  _buildNavButton(Icons.arrow_back_ios_rounded, () => Navigator.pop(context)),
+                  NavIconButton(
+                    icon: Icons.arrow_back_ios_rounded,
+                    onPressed: () => Navigator.pop(context),
+                  ),
                   const SizedBox(width: 12),
                   const Text(
-                    "Alphabet Quiz",
+                    'Alphabet Quiz',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
@@ -210,20 +220,23 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Mode Toggle
+              // ---- Mode Toggle ----
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    currentMode == QuizMode.visual ? "Visual Mode" : "Audio Mode",
-                    style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.bold),
+                    currentMode == QuizMode.visual ? 'Visual Mode' : 'Audio Mode',
+                    style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold),
                   ),
                   Switch(
                     value: currentMode == QuizMode.visual,
                     onChanged: (val) {
                       setState(() {
                         currentMode = val ? QuizMode.visual : QuizMode.audio;
-                        _generateQuestion(); // Reset question when switching modes for a fresh start
+                        _generateQuestion();
                       });
                     },
                     activeThumbColor: AppColors.primary,
@@ -231,7 +244,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 ],
               ),
 
-              // Progress Bar
+              // ---- Progress Bar ----
               LinearProgressIndicator(
                 value: (currentQuestionIndex + 1) / 10,
                 backgroundColor: Colors.white,
@@ -240,18 +253,22 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                "Question ${currentQuestionIndex + 1} of 10",
-                style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                'Question ${currentQuestionIndex + 1} of 10',
+                style: const TextStyle(
+                    color: Colors.grey, fontWeight: FontWeight.w500),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
 
-              // The Question Area
+              // ---- Question Area ----
               Center(
                 child: Column(
                   children: [
                     Text(
-                      currentMode == QuizMode.visual ? "Which letter is this?" : "Which letter is this sound?",
-                      style: const TextStyle(fontSize: 20, color: Color(0xFF2D2D4E)),
+                      currentMode == QuizMode.visual
+                          ? 'Which letter is this?'
+                          : 'Which letter is this sound?',
+                      style: const TextStyle(
+                          fontSize: 20, color: Color(0xFF2D2D4E)),
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
@@ -264,7 +281,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF000000).withValues(alpha: 0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -274,27 +291,34 @@ class _QuizScreenState extends State<QuizScreen> {
                           child: currentMode == QuizMode.visual
                               ? Text(
                                   correctCard.letter,
-                                  style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold, fontFamily: 'Pyidaungsu'),
+                                  style: const TextStyle(
+                                      fontSize: 80,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Pyidaungsu'),
                                 )
-                              : const Icon(Icons.volume_up, size: 80, color: AppColors.primary),
+                              : const Icon(Icons.volume_up,
+                                  size: 80, color: AppColors.primary),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.volume_up, size: 16, color: Colors.grey),
+                        const Icon(Icons.volume_up,
+                            size: 16, color: Colors.grey),
                         const SizedBox(width: 4),
-                        const Text("Tap to hear sound", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        const Text('Tap to hear sound',
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
 
-              // Options Grid
+              // ---- Options Grid ----
               Expanded(
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -304,13 +328,12 @@ class _QuizScreenState extends State<QuizScreen> {
                     mainAxisSpacing: 16,
                   ),
                   itemCount: 4,
-                  itemBuilder: (context, index) {
-                    return _buildOptionButton(options[index], index);
-                  },
+                  itemBuilder: (context, index) =>
+                      _buildOptionButton(options[index], index),
                 ),
               ),
 
-              // Next Button
+              // ---- Next Button (only shown after answering) ----
               if (isAnswered)
                 SizedBox(
                   width: double.infinity,
@@ -320,9 +343,12 @@ class _QuizScreenState extends State<QuizScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: const Text("Next Question", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: const Text('Next Question',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
             ],
@@ -333,53 +359,51 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Widget _buildOptionButton(Flashcard option, int index) {
-    bool isCorrect = option.letter == correctCard.letter;
-    Color color = Colors.white;
+    final isCorrect = option.letter == correctCard.letter;
+
+    Color bgColor = Colors.white;
+    Color borderColor = AppColors.primary.withValues(alpha: 0.3);
+    double borderWidth = 1;
 
     if (isAnswered) {
       if (isCorrect) {
-        color = Colors.greenAccent;
+        bgColor = Colors.greenAccent;
+        borderColor = Colors.green;
+        borderWidth = 2;
       } else if (clickedIndex == index) {
-        color = Colors.redAccent;
+        bgColor = Colors.redAccent;
+        borderColor = Colors.red;
+        borderWidth = 2;
       }
     }
 
     return GestureDetector(
       onTap: () => _checkAnswer(index),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: color,
+          color: bgColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: const Color(0xFF000000).withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2)),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
           ],
-          border: Border.all(
-            color: isAnswered && isCorrect ? Colors.green : AppColors.primary.withValues(alpha: 0.3),
-            width: isAnswered && isCorrect ? 2 : 1,
-          ),
+          border: Border.all(color: borderColor, width: borderWidth),
         ),
         child: Center(
           child: Text(
             option.letter,
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, fontFamily: 'Pyidaungsu', color: Color(0xFF2D2D4E)),
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Pyidaungsu',
+              color: Color(0xFF2D2D4E),
+            ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavButton(IconData icon, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(color: const Color(0xFF000000).withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(icon, size: 32, color: AppColors.primary),
-        onPressed: onPressed,
       ),
     );
   }

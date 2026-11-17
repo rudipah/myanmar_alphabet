@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import 'flashcard_screen.dart'; // Import the flashcard screen
-import 'quiz_screen.dart'; // Import the quiz screen
-import 'matching_game_screen.dart'; // Import the matching game screen
-import 'settings_screen.dart'; // Import settings screen
-import '../data/data_loader.dart'; // Import data loader
-import '../models/flashcard.dart'; // Flashcard model type
-import '../services/sound_service.dart'; // Import sound service
+import 'flashcard_screen.dart';
+import 'quiz_screen.dart';
+import 'matching_game_screen.dart';
+import 'settings_screen.dart';
+import '../data/data_loader.dart';
+import '../models/flashcard.dart';
+import '../services/sound_service.dart';
+import '../services/preferences_service.dart';
 import '../utils/app_colors.dart';
-import '../utils/navigator_util.dart';
 import '../widgets/menu_button.dart';
-import 'progress_screen.dart'; // Import the progress screen
-import '../services/ad_manager.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../widgets/banner_ad_widget.dart';
+import 'progress_screen.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -26,31 +25,16 @@ class _MenuScreenState extends State<MenuScreen>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
-  BannerAd? _bannerAd;
 
-  void _loadBannerAd() {
-    _bannerAd = AdManager.instance.createBannerAd(
-      onAdLoaded: (ad) {
-        setState(() {});
-        debugPrint('AdMob Banner loaded on MenuScreen');
-      },
-      onAdFailedToLoad: (ad, error) {
-        ad.dispose();
-        debugPrint('AdMob Banner failed to load on MenuScreen: $error');
-      },
-    );
-    _bannerAd!.load();
-  }
-
-  // Flashcards list from loader
-  late List<Flashcard> flashcards;
+  List<Flashcard> flashcards = [];
   Flashcard? _dailyLetter;
+  int _streak = 0;
+  bool _soundEnabled = true;
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize animations first (before async data loading)
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -67,98 +51,83 @@ class _MenuScreenState extends State<MenuScreen>
       curve: Curves.easeOut,
     ));
 
-    // Load flashcards from JSON
     _loadData();
-    _loadBannerAd();
   }
 
   Future<void> _loadData() async {
-    // Load flashcards from JSON
     flashcards = await DataLoader.loadFlashcards();
 
-    // Use a simpler deterministic seed - use letter index based on date
-    final now = DateTime.now();
     if (flashcards.isNotEmpty) {
-      // Use month-day combination as index (never zero)
-      final index = ((now.month + now.day) % flashcards.length);
-      setState(() {
-        _dailyLetter = flashcards[index];
-      });
+      // Use day-of-year so every calendar day shows a unique letter
+      final now = DateTime.now();
+      // Compare as UTC dates so a daylight-saving change can't shift the day.
+      final dayOfYear = DateTime.utc(now.year, now.month, now.day)
+              .difference(DateTime.utc(now.year, 1, 1))
+              .inDays +
+          1;
+      final index = dayOfYear % flashcards.length;
+      _dailyLetter = flashcards[index];
     }
 
-    // Start animations after data is loaded
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _animController.forward();
-      }
-    });
+    final streak = await PreferencesService.getCurrentStreak();
+    final soundEnabled = await PreferencesService.isSoundEnabled();
+
+    if (mounted) {
+      setState(() {
+        _streak = streak;
+        _soundEnabled = soundEnabled;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _animController.forward();
+      });
+    }
+  }
+
+  /// Opens a screen, then refreshes the streak badge when the child returns
+  /// (studying inside that screen may have extended it).
+  Future<void> _open(Widget screen) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => screen),
+    );
+    final streak = await PreferencesService.getCurrentStreak();
+    if (mounted) setState(() => _streak = streak);
+  }
+
+  Future<void> _toggleSound() async {
+    final newValue = !_soundEnabled;
+    await PreferencesService.setSoundEnabled(newValue);
+    if (!newValue) await SoundService.stop(); // Cut off any audio already playing
+    if (mounted) setState(() => _soundEnabled = newValue);
   }
 
   @override
   void dispose() {
     _animController.dispose();
-    _bannerAd?.dispose();
     super.dispose();
   }
 
-  void _navigateToHome(BuildContext context) {
-    NavigatorUtil.push(context, const HomeScreen());
-  }
-
-  void _navigateToFlashcards(BuildContext context) {
-    NavigatorUtil.push(context, const FlashcardScreen());
-  }
-
-  void _navigateToQuiz(BuildContext context) {
-    NavigatorUtil.push(context, const QuizScreen());
-  }
-
-  void _navigateToMatchingGame(BuildContext context) {
-    NavigatorUtil.push(context, const MatchingGameScreen());
-  }
-
-  void _navigateToSettings(BuildContext context) {
-    NavigatorUtil.push(context, const SettingsScreen());
-  }
-
-  void _navigateToProgress(BuildContext context) {
-    NavigatorUtil.push(context, const ProgressScreen());
-  }
-
-  // void _navigateToProgress(BuildContext context) {
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (_) => const ProgressScreen(),
-  //     ),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: _bannerAd != null
-          ? SizedBox(
-              height: _bannerAd!.size.height.toDouble().clamp(0, 100),
-              width: _bannerAd!.size.width.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
-            )
-          : const SizedBox.shrink(),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primary,
-              AppColors.primaryLight,
-              Color(0xFFA29BFE),
-            ],
-          ),
+    // The gradient wraps the whole Scaffold (not just the body) so it also
+    // shows behind the banner ad / bottom safe area instead of white.
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary,
+            AppColors.primaryLight,
+            Color(0xFFA29BFE),
+          ],
         ),
-        child: SafeArea(
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        bottomNavigationBar: const BannerAdWidget(),
+        body: SizedBox.expand(
+          child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnim,
             child: SlideTransition(
@@ -168,15 +137,65 @@ class _MenuScreenState extends State<MenuScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // ---- Top Row: streak + mute ----
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Streak badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text('🔥',
+                                  style: TextStyle(fontSize: 16)),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$_streak day${_streak == 1 ? '' : 's'}',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Mute toggle
+                        GestureDetector(
+                          onTap: _toggleSound,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              _soundEnabled
+                                  ? Icons.volume_up
+                                  : Icons.volume_off,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
                     // ---- App icon ----
                     Container(
                       width: 110,
                       height: 110,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha:0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha:0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                           width: 2,
                         ),
                       ),
@@ -195,24 +214,33 @@ class _MenuScreenState extends State<MenuScreen>
 
                     const SizedBox(height: 24),
 
-                    // ---- Letter of the Day Section ----
+                    // ---- Letter of the Day ----
                     GestureDetector(
                       onTap: () {
-                        SoundService.playLetter(_dailyLetter?.audio ?? 'a.ogg');
+                        if (_soundEnabled) {
+                          SoundService.playLetter(
+                              _dailyLetter?.audio ?? 'a.ogg');
+                        }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha:0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha:0.5), width: 1.5),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              width: 1.5),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Text(
-                              "🌟 Letter of the Day: ",
-                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                              '🌟 Letter of the Day: ',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500),
                             ),
                             Text(
                               (_dailyLetter?.letter ?? '؟'),
@@ -224,7 +252,8 @@ class _MenuScreenState extends State<MenuScreen>
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.volume_up, color: Colors.white, size: 20),
+                            const Icon(Icons.volume_up,
+                                color: Colors.white, size: 20),
                           ],
                         ),
                       ),
@@ -233,7 +262,6 @@ class _MenuScreenState extends State<MenuScreen>
                     const SizedBox(height: 24),
 
                     // ---- Title ----
-
                     const Text(
                       'Learn Myanmar Alphabet',
                       style: TextStyle(
@@ -248,7 +276,7 @@ class _MenuScreenState extends State<MenuScreen>
                       'Tap start to begin learning',
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.white.withValues(alpha:0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
 
@@ -257,16 +285,16 @@ class _MenuScreenState extends State<MenuScreen>
                     // ---- Buttons ----
                     Column(
                       children: [
-                        // Primary Action: Start Learning
                         MenuButton(
                           label: 'Start Learning',
-                          icon: const Text('✏️', style: TextStyle(fontSize: 22)),
-                          onTap: () => _navigateToHome(context),
+                          icon: const Text('✏️',
+                              style: TextStyle(fontSize: 22)),
+                          onTap: () =>
+                              _open(const HomeScreen()),
                           isPrimary: false,
                         ),
                         const SizedBox(height: 30),
 
-                        // Game Modes Grid
                         GridView.count(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
@@ -277,36 +305,40 @@ class _MenuScreenState extends State<MenuScreen>
                           children: [
                             MenuButton(
                               label: 'Flashcards',
-                              icon: const Text('📚', style: TextStyle(fontSize: 22)),
-                              onTap: () => _navigateToFlashcards(context),
+                              icon: const Text('📚',
+                                  style: TextStyle(fontSize: 22)),
+                              onTap: () => _open(const FlashcardScreen()),
                             ),
                             MenuButton(
                               label: 'Quiz Time',
-                              icon: const Text('🎯', style: TextStyle(fontSize: 22)),
-                              onTap: () => _navigateToQuiz(context),
+                              icon: const Text('🎯',
+                                  style: TextStyle(fontSize: 22)),
+                              onTap: () => _open(const QuizScreen()),
                             ),
                             MenuButton(
                               label: 'Matching',
-                              icon: const Text('🧩', style: TextStyle(fontSize: 22)),
-                              onTap: () => _navigateToMatchingGame(context),
+                              icon: const Text('🧩',
+                                  style: TextStyle(fontSize: 22)),
+                              onTap: () => _open(const MatchingGameScreen()),
                             ),
                             MenuButton(
                               label: 'Progress',
-                              icon: const Text('📊', style: TextStyle(fontSize: 22)),
-                              onTap: () => _navigateToProgress(context),
+                              icon: const Text('📊',
+                                  style: TextStyle(fontSize: 22)),
+                              onTap: () => _open(const ProgressScreen()),
                             ),
                           ],
                         ),
                         const SizedBox(height: 30),
 
-                        // Utilities Row
                         Row(
                           children: [
                             Expanded(
                               child: MenuButton(
                                 label: 'Settings',
-                                icon: const Text('⚙️', style: TextStyle(fontSize: 22)),
-                                onTap: () => _navigateToSettings(context),
+                                icon: const Text('⚙️',
+                                    style: TextStyle(fontSize: 22)),
+                                onTap: () => _open(const SettingsScreen()),
                               ),
                             ),
                           ],
@@ -318,6 +350,7 @@ class _MenuScreenState extends State<MenuScreen>
               ),
             ),
           ),
+        ),
         ),
       ),
     );

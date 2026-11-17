@@ -3,8 +3,8 @@ import '../models/letter.dart';
 import '../data/data_loader.dart';
 import '../utils/app_colors.dart';
 import '../services/preferences_service.dart';
-import '../services/ad_manager.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../widgets/banner_ad_widget.dart';
+import '../widgets/nav_icon_button.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -18,27 +18,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
   List<MyanmarLetter> _numbers = [];
   Map<String, int> _letterProgress = {};
   bool _isLoading = true;
-  BannerAd? _bannerAd;
-
-  void _loadBannerAd() {
-    _bannerAd = AdManager.instance.createBannerAd(
-      onAdLoaded: (ad) {
-        setState(() {});
-        debugPrint('AdMob Banner loaded on ProgressScreen');
-      },
-      onAdFailedToLoad: (ad, error) {
-        ad.dispose();
-        debugPrint('AdMob Banner failed to load on ProgressScreen: $error');
-      },
-    );
-    _bannerAd!.load();
-  }
 
   @override
   void initState() {
     super.initState();
     _loadData();
-    _loadBannerAd();
   }
 
   Future<void> _loadData() async {
@@ -47,26 +31,29 @@ class _ProgressScreenState extends State<ProgressScreen> {
       final numbers = await DataLoader.loadNumbers();
       final progress = await PreferencesService.getLetterProgress();
 
-      setState(() {
-        _consonants = letters;
-        _numbers = numbers;
-        _letterProgress = progress;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _consonants = letters;
+          _numbers = numbers;
+          _letterProgress = progress;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading progress data: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   double get _progressPercentage {
-    final allLetters = [..._consonants, ..._numbers];
-    if (allLetters.isEmpty) return 0.0;
-    final masteredCount = _letterProgress.entries.where((e) => e.value > 0).length;
-    return masteredCount / allLetters.length;
+    final total = _consonants.length + _numbers.length;
+    if (total == 0) return 0.0;
+    final practiced = _letterProgress.entries.where((e) => e.value > 0).length;
+    return practiced / total;
   }
+
+  int get _practicedCount =>
+      _letterProgress.entries.where((e) => e.value > 0).length;
 
   Widget _buildSection(String title, List<MyanmarLetter> letters) {
     if (letters.isEmpty) return const SizedBox.shrink();
@@ -95,6 +82,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           itemBuilder: (context, index) {
             final card = letters[index];
             final count = _letterProgress[card.character] ?? 0;
+            final isPracticed = count > 0;
 
             Color tierColor;
             int starCount = 0;
@@ -112,11 +100,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
               starCount = 3;
             }
 
-            final isPracticed = count > 0;
-
             return Container(
               decoration: BoxDecoration(
-                color: isPracticed ? tierColor.withValues(alpha: 0.2) : Colors.white,
+                color: isPracticed
+                    ? tierColor.withValues(alpha: 0.2)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isPracticed ? tierColor : Colors.grey[300]!,
@@ -142,11 +130,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: List.generate(
                             starCount,
-                            (i) => Icon(
-                              Icons.star,
-                              size: 10,
-                              color: tierColor,
-                            ),
+                            (i) => Icon(Icons.star,
+                                size: 10, color: tierColor),
                           ),
                         ),
                       ),
@@ -171,22 +156,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   @override
-  void dispose() {
-    _bannerAd?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0EEFF),
-      bottomNavigationBar: _bannerAd != null
-          ? SizedBox(
-              height: _bannerAd!.size.height.toDouble().clamp(0, 100),
-              width: _bannerAd!.size.width.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
-            )
-          : const SizedBox.shrink(),
+      bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -197,14 +170,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     // ---- Header ----
                     Row(
                       children: [
-                        _buildNavButton(
-                          Icons.arrow_back_ios_rounded,
-                          () => Navigator.pop(context),
+                        NavIconButton(
+                          icon: Icons.arrow_back_ios_rounded,
+                          onPressed: () => Navigator.pop(context),
                         ),
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: const Text(
-                            "My Progress",
+                        const Expanded(
+                          child: Text(
+                            'My Progress',
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
@@ -217,9 +190,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ),
                     const SizedBox(height: 30),
 
-                    // ---- Progress bar ----
+                    // ---- Progress Bar ----
                     const Text(
-                      "Learning Progress",
+                      'Learning Progress',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -238,39 +211,21 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "${(_progressPercentage * 100).toInt()}% Completed (${_letterProgress.entries.where((e) => e.value > 0).length}/${_consonants.length + _numbers.length} letters)",
-                      style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                      '${(_progressPercentage * 100).toInt()}% Completed  '
+                      '($_practicedCount/${_consonants.length + _numbers.length} letters)',
+                      style: const TextStyle(
+                          color: Colors.grey, fontWeight: FontWeight.w500),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
                     const SizedBox(height: 32),
 
                     // ---- Sections ----
-                    _buildSection("Consonants", _consonants),
-                    _buildSection("Numbers", _numbers),
+                    _buildSection('Consonants', _consonants),
+                    _buildSection('Numbers', _numbers),
                   ],
                 ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavButton(IconData icon, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(icon, size: 32, color: AppColors.primary),
-        onPressed: onPressed,
       ),
     );
   }

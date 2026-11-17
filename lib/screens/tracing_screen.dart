@@ -3,11 +3,10 @@ import 'package:flutter/services.dart';
 import '../models/letter.dart';
 import '../widgets/tracing_canvas.dart';
 import '../services/sound_service.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../utils/ad_helper.dart';
 import 'package:confetti/confetti.dart';
 import '../utils/app_colors.dart';
 import '../services/preferences_service.dart';
+import '../widgets/banner_ad_widget.dart';
 
 class TracingScreen extends StatefulWidget {
   final MyanmarLetter letter;
@@ -188,6 +187,7 @@ class _TracingScreenState extends State<TracingScreen>
     _confettiController.play();
 
     await PreferencesService.incrementLetterProgress(widget.letter.character);
+    await PreferencesService.recordStudyActivity();
 
     _showSuccessPopup(() {
       _canvasKey.currentState?.clear();
@@ -216,6 +216,7 @@ class _TracingScreenState extends State<TracingScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0EEFF),
+      bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Column(
           children: [

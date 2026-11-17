@@ -10,95 +10,99 @@ class UnityAdsService {
 
   static String get _currentGameId => Platform.isIOS ? _iosGameId : _androidGameId;
 
-  // Placement IDs - Use official Unity Test IDs when in test mode
+  // Placement IDs
   static String get _currentInterstitialId {
     if (Platform.isIOS) return 'Interstitial_iOS';
     return 'Interstitial_Android';
   }
 
-  static String get _currentRewardedId {
-    if (Platform.isIOS) return 'Rewarded_iOS';
-    return 'Rewarded_Android';
-  }
-
-  // Cooldown logic is now handled by AdManager
-
-  /// Initializes Unity Ads. Guarded by kIsWeb to prevent crashes on web.
+  /// Initializes Unity Ads.
+  /// testMode automatically follows kDebugMode — no manual toggle needed.
   static Future<void> initialize() async {
     if (kIsWeb) return;
 
     try {
       await UnityAds.init(
         gameId: _currentGameId,
-        testMode: true, // set to false before release
-        onComplete: () => print('Unity Ads initialized successfully for ${Platform.isIOS ? "iOS" : "Android"}'),
-        onFailed: (error, message) => print('Unity Ads initialization failed: $error $message'),
+        testMode: kDebugMode, // ✅ true in debug builds, false in release builds
+        onComplete: () => debugPrint(
+            'Unity Ads initialised for ${Platform.isIOS ? "iOS" : "Android"}'),
+        onFailed: (error, message) =>
+            debugPrint('Unity Ads init failed: $error $message'),
       );
     } catch (e) {
-      print('Unity Ads initialization exception: $e');
+      debugPrint('Unity Ads init exception: $e');
     }
   }
 
   static Completer<bool>? _loadCompleter;
+  static bool _isLoaded = false;
 
+  /// True when an interstitial is loaded and ready to show.
+  static bool get isInterstitialReady => _isLoaded;
+
+  /// Loads an interstitial. Returns immediately with `true` if one is
+  /// already loaded, and shares the in-flight request if one is running.
   static Future<bool> loadInterstitialAd() async {
     if (kIsWeb) return false;
+    if (_isLoaded) return true;
 
-    _loadCompleter = Completer<bool>();
+    final inFlight = _loadCompleter;
+    if (inFlight != null && !inFlight.isCompleted) return inFlight.future;
+
+    final completer = Completer<bool>();
+    _loadCompleter = completer;
 
     UnityAds.load(
       placementId: _currentInterstitialId,
       onComplete: (placementId) {
-        debugPrint('Interstitial loaded: $placementId');
-        if (_loadCompleter != null && !_loadCompleter!.isCompleted) {
-          _loadCompleter!.complete(true);
-        }
+        debugPrint('Unity interstitial loaded: $placementId');
+        _isLoaded = true;
+        if (!completer.isCompleted) completer.complete(true);
       },
       onFailed: (placementId, error, message) {
-        debugPrint('Interstitial failed to load: $error $message');
-        if (_loadCompleter != null && !_loadCompleter!.isCompleted) {
-          _loadCompleter!.complete(false);
-        }
+        debugPrint('Unity interstitial failed to load: $error $message');
+        _isLoaded = false;
+        if (!completer.isCompleted) completer.complete(false);
       },
     );
 
-    return _loadCompleter!.future;
+    return completer.future;
   }
 
+  /// Shows the interstitial and reports the REAL outcome:
+  /// `true` once the ad has started playing, `false` if it failed to show
+  /// (or nothing was loaded / it timed out).
   static Future<bool> showInterstitialAd() async {
-    if (kIsWeb) return false;
+    if (kIsWeb || !_isLoaded) return false;
+
+    // A loaded Unity ad can only be shown once.
+    _isLoaded = false;
+
+    final completer = Completer<bool>();
+
     UnityAds.showVideoAd(
       placementId: _currentInterstitialId,
-      onComplete: (placementId) => print('Interstitial completed: $placementId'),
-      onFailed: (placementId, error, message) =>
-          print('Interstitial failed to show: $error $message'),
-      onStart: (placementId) => print('Interstitial started: $placementId'),
-      onClick: (placementId) => print('Interstitial clicked: $placementId'),
-    );
-    return true;
-  }
-
-  static void loadRewardedAd() {
-    if (kIsWeb) return;
-    UnityAds.load(
-      placementId: _currentRewardedId,
-      onComplete: (placementId) => print('Rewarded ad loaded: $placementId'),
-      onFailed: (placementId, error, message) =>
-          print('Rewarded ad failed to load: $error $message'),
-    );
-  }
-
-  static void showRewardedAd({required Function onRewarded}) {
-    if (kIsWeb) return;
-    UnityAds.showVideoAd(
-      placementId: _currentRewardedId,
-      onComplete: (placementId) {
-        print('Rewarded ad completed: $placementId');
-        onRewarded();
+      onStart: (placementId) {
+        debugPrint('Unity interstitial started: $placementId');
+        if (!completer.isCompleted) completer.complete(true);
       },
-      onFailed: (placementId, error, message) =>
-          print('Rewarded ad failed to show: $error $message'),
-      onSkipped: (placementId) => print('Rewarded ad skipped: $placementId'),
+      onComplete: (placementId) {
+        debugPrint('Unity interstitial completed: $placementId');
+        // Safety net in case onStart was not delivered.
+        if (!completer.isCompleted) completer.complete(true);
+      },
+      onFailed: (placementId, error, message) {
+        debugPrint('Unity interstitial failed to show: $error $message');
+        if (!completer.isCompleted) completer.complete(false);
+      },
+      onClick: (placementId) =>
+          debugPrint('Unity interstitial clicked: $placementId'),
+    );
+
+    return completer.future.timeout(
+      const Duration(seconds: 8),
+      onTimeout: () => false,
     );
   }
 }

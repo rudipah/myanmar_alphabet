@@ -1,7 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'dart:async';
-import 'dart:io';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../utils/ad_helper.dart';
 import '../services/unity_ads_service.dart';
@@ -22,7 +19,8 @@ class AdManager {
   Future<void> preloadAds() async {
     if (kIsWeb) return;
     debugPrint('AdManager: Preloading ads from all providers...');
-    await AdHelper.loadInterstitialAd();
+    // Both are no-ops if an ad is already loaded / loading.
+    AdHelper.loadInterstitialAd();
     UnityAdsService.loadInterstitialAd();
   }
 
@@ -30,14 +28,19 @@ class AdManager {
   BannerAd createBannerAd({
     required void Function(Ad, LoadAdError) onAdFailedToLoad,
     required void Function(Ad) onAdLoaded,
+    AdSize size = AdSize.banner,
   }) {
     return AdHelper.createBannerAd(
       onAdFailedToLoad: onAdFailedToLoad,
       onAdLoaded: onAdLoaded,
+      size: size,
     );
   }
 
   /// Shows an interstitial ad, rotating between providers and respecting cooldown.
+  /// Never blocks the child waiting for a load: if a provider has nothing
+  /// ready it fails fast, the other provider is tried, and a load is started
+  /// in the background for next time.
   Future<void> showInterstitialAd() async {
     if (kIsWeb) return;
 
@@ -48,31 +51,25 @@ class AdManager {
       return;
     }
 
-    // 2. Attempt to show ad from current provider
-    bool success = false;
-    if (_currentProvider == AdProvider.admob) {
-      success = await _tryAdMobInterstitial();
-    } else {
-      success = await _tryUnityInterstitial();
-    }
+    // 2. Attempt current provider, then fall back to the other one
+    final first = _currentProvider;
+    final second =
+        first == AdProvider.admob ? AdProvider.unity : AdProvider.admob;
 
-    // 3. Fallback to other provider if first failed
+    bool success = await _tryProvider(first);
     if (!success) {
-      debugPrint('AdManager: Primary provider failed, trying fallback...');
-      if (_currentProvider == AdProvider.admob) {
-        success = await _tryUnityInterstitial();
-      } else {
-        success = await _tryAdMobInterstitial();
-      }
+      debugPrint('AdManager: ${first.name} did not show, trying ${second.name}...');
+      success = await _tryProvider(second);
     }
 
-    // 4. If an ad was shown, update cooldown, rotate provider, AND reload for next time
+    // 3. Only a REAL show starts the cooldown and rotates the provider
     if (success) {
       _lastAdShownTime = DateTime.now();
       _rotateProvider();
-      // Preload the next ad immediately
-      preloadAds();
     }
+
+    // 4. Make sure the next ad is loading (no-ops if already loaded/loading)
+    preloadAds();
   }
 
   void _rotateProvider() {
@@ -82,41 +79,15 @@ class AdManager {
     debugPrint('AdManager: Provider rotated to ${_currentProvider.name}');
   }
 
-  Future<bool> _tryAdMobInterstitial() async {
+  Future<bool> _tryProvider(AdProvider provider) async {
     try {
-      // AdMob requires pre-loading
-      await AdHelper.loadInterstitialAd();
-      // We give it a tiny bit of time to load if it was just called
-      await Future.delayed(const Duration(milliseconds: 500));
-      return await AdHelper.showInterstitialAd();
-    } catch (e) {
-      debugPrint('AdManager: AdMob interstitial error: $e');
-      return false;
-    }
-  }
-
-  Future<bool> _tryUnityInterstitial() async {
-    try {
-      // Wait for the ad to load if it's not ready yet (max 3 seconds)
-      bool isLoaded = await UnityAdsService.loadInterstitialAd().timeout(
-        const Duration(seconds: 3),
-        onTimeout: () => false,
-      );
-
-      if (isLoaded) {
-        UnityAdsService.showInterstitialAd();
-        return true;
+      if (provider == AdProvider.admob) {
+        return await AdHelper.showInterstitialAd();
       }
-      return false;
+      return await UnityAdsService.showInterstitialAd();
     } catch (e) {
-      debugPrint('AdManager: Unity interstitial error: $e');
+      debugPrint('AdManager: ${provider.name} interstitial error: $e');
       return false;
     }
-  }
-
-  /// Shows a rewarded ad (Unity only, as per current laout)
-  void showRewardedAd({required Function onRewarded}) {
-    if (kIsWeb) return;
-    UnityAdsService.showRewardedAd(onRewarded: onRewarded);
   }
 }

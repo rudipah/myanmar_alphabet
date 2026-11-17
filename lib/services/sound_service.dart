@@ -46,6 +46,7 @@ class SoundService {
   /// Play sound instantly using the cache.
   static Future<void> playLetter(String audioFile) async {
     if (_isBusy) return;
+    if (!await PreferencesService.isSoundEnabled()) return; // Muted
     _isBusy = true;
 
     try {
@@ -80,6 +81,7 @@ class SoundService {
   /// Play letter followed by its corresponding word audio sequentially.
   static Future<void> playLetterAndWord(String letterAudio, String wordAudio) async {
     if (_isBusy) return;
+    if (!await PreferencesService.isSoundEnabled()) return; // Muted
     _isBusy = true;
 
     try {

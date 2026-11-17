@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'dart:async';
 
 import '../data/letters_data.dart';
 import '../data/data_loader.dart';
@@ -9,7 +7,7 @@ import 'tracing_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/navigator_util.dart';
 import '../services/ad_manager.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../widgets/banner_ad_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialTab;
@@ -23,30 +21,7 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _currentIndex = 0;
-  BannerAd? _bannerAd;
 
-  void _loadBannerAd() {
-    _bannerAd = AdManager.instance.createBannerAd(
-      onAdLoaded: (ad) {
-        setState(() {});
-        debugPrint('AdMob Banner loaded on HomeScreen');
-      },
-      onAdFailedToLoad: (ad, error) {
-        ad.dispose();
-        debugPrint('AdMob Banner failed to load on HomeScreen: $error');
-      },
-    );
-    _bannerAd!.load();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _bannerAd?.dispose();
-    super.dispose();
-  }
-
-  // Data from JSON or hardcoded fallback
   List<MyanmarLetter> _consonantLetters = [];
   List<MyanmarLetter> _numberLetters = [];
 
@@ -60,32 +35,35 @@ class _HomeScreenState extends State<HomeScreen>
     );
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
-
-      setState(() {
-        _currentIndex = _tabController.index;
-      });
+      setState(() => _currentIndex = _tabController.index);
     });
     _loadData();
-    _loadBannerAd();
+
+    // Update streak when user enters the learning screen
+    AdManager.instance.preloadAds();
   }
 
-  /// Load data from JSON or use hardcoded fallback
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadData() async {
     try {
       final letters = await DataLoader.loadLetters();
       final numbers = await DataLoader.loadNumbers();
-
       if (mounted) {
         setState(() {
           _consonantLetters = letters;
           _numberLetters = numbers;
         });
-        debugPrint('Loaded ${letters.length} letters and ${numbers.length} numbers from JSON');
+        debugPrint(
+            'Loaded ${letters.length} letters and ${numbers.length} numbers from JSON');
       }
     } catch (e) {
       debugPrint('Data loading failed (using hardcoded data): $e');
       if (!mounted) return;
-
       setState(() {
         _consonantLetters = myanmarLetters;
         _numberLetters = myanmarNumbers;
@@ -93,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  // Keep hardcoded data for kIsWeb fallback
+  // Hardcoded fallback data (used if JSON load fails or on web)
   static final List<MyanmarLetter> myanmarLetters = [
     MyanmarLetter(character: 'က', name: 'ka', emoji: '🐱', colorValue: 0xFFFF6B6B, audioFile: 'ka.ogg'),
     MyanmarLetter(character: 'ခ', name: 'kha', emoji: '🐶', colorValue: 0xFFFF9F43, audioFile: 'kha.ogg'),
@@ -148,13 +126,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0EEFF),
-      bottomNavigationBar: _bannerAd != null
-          ? SizedBox(
-              height: _bannerAd!.size.height.toDouble().clamp(0, 100),
-              width: _bannerAd!.size.width.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
-            )
-          : const SizedBox.shrink(),
+      bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -196,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen>
                 child: Row(
                   children: [
                     _buildToggleTab(
-                      title: "🔤 Consonants",
+                      title: '🔤 Consonants',
                       selected: _currentIndex == 0,
                       onTap: () {
                         setState(() {
@@ -206,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen>
                       },
                     ),
                     _buildToggleTab(
-                      title: "🔢 Numbers",
+                      title: '🔢 Numbers',
                       selected: _currentIndex == 1,
                       onTap: () {
                         setState(() {
@@ -303,10 +275,7 @@ class _LetterGrid extends StatelessWidget {
             onTap: () {
               NavigatorUtil.push(
                 context,
-                TracingScreenWithNav(
-                  items: items,
-                  startIndex: index,
-                ),
+                TracingScreenWithNav(items: items, startIndex: index),
               );
             },
             child: Container(
