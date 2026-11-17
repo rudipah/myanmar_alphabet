@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import 'glass_container.dart';
 
 class MenuButton extends StatelessWidget {
   final String label;
@@ -17,48 +18,37 @@ class MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: onTap,
-        child: Ink(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          decoration: BoxDecoration(
-            color: isPrimary ? AppColors.primary : AppColors.surface,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: isPrimary
-                    ? AppColors.primary.withValues(alpha: 0.3)
-                    : Colors.black.withValues(alpha: 0.12),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon is IconData)
-                  Icon(icon, color: isPrimary ? Colors.white : AppColors.primary),
-                if (icon is Widget)
-                  icon,
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: isPrimary ? Colors.white : AppColors.primary,
-                  ),
+    return GlassContainer(
+      width: double.infinity,
+      borderRadius: 24,
+      blur: 14,
+      tint: isPrimary ? AppColors.primary.withValues(alpha: 0.55) : null,
+      borderColor: isPrimary ? const Color(0x59B4A0FF) : null,
+      onTap: onTap,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (icon is IconData) Icon(icon, color: Colors.white),
+          if (icon is Widget) icon,
+          const SizedBox(width: 8),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.onGlass,
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

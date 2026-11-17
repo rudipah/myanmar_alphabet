@@ -13,6 +13,19 @@ class AppColors {
   static const Color textColor = Color(0xFF2D2D4E);
   static const Color textSecondary = Color(0xFF6B6B8A);
 
+  // Liquid-glass palette (dark mesh background + translucent glass)
+  static const Color meshBase = Color(0xFF150D2E);
+  static const Color onGlass = Color(0xF2FFFFFF); // white 95%
+  static const Color onGlassMuted = Color(0x8CFFFFFF); // white 55%
+  static const Color glassCorrect = Color(0xFF34D399);
+  static const Color glassWrong = Color(0xFFF87171);
+  static const double glassFillAlpha = 0.10;
+  static const double glassBorderAlpha = 0.20;
+  static const double glassSpecularAlpha = 0.12;
+
+  /// White at the given opacity — shorthand used all over the glass UI.
+  static Color white(double alpha) => Colors.white.withValues(alpha: alpha);
+
   // Status Colors
   static const Color success = Colors.greenAccent;
   static const Color error = Colors.redAccent;

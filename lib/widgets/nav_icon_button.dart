@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import 'glass_container.dart';
 
-/// Consistent back/nav icon button used across all screens.
-/// Replaces the identical _buildNavButton() method repeated in
-/// quiz_screen, flashcard_screen, progress_screen, and matching_game_screen.
+/// Consistent back/nav icon button used across all screens (glass pill).
 class NavIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
@@ -16,22 +15,14 @@ class NavIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(icon, size: 32, color: AppColors.primary),
-        onPressed: onPressed,
-      ),
+    return GlassContainer(
+      width: 52,
+      height: 52,
+      borderRadius: 16,
+      blur: 10,
+      alignment: Alignment.center,
+      onTap: onPressed,
+      child: Icon(icon, size: 26, color: AppColors.white(0.92)),
     );
   }
 }

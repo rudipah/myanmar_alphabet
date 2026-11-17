@@ -4,6 +4,8 @@ import '../services/sound_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/nav_icon_button.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/mesh_background.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -84,14 +86,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0EEFF),
+    return GlassScaffold(
       bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white))
               : ListView(
                   children: [
                     // ---- Header (matches all other screens) ----
@@ -107,7 +109,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF2D2D4E),
+                            color: AppColors.onGlass,
                           ),
                         ),
                       ],
@@ -118,12 +120,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const Text(
                       'Sound',
                       style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onGlass),
                     ),
                     const SizedBox(height: 16),
-                    Card(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                    GlassContainer(
+                      borderRadius: 16,
+                      blur: 14,
+                      darkMaterial: true,
                       child: Column(
                         children: [
                           // Master sound on/off
@@ -176,21 +181,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const Text(
                       'Account & Data',
                       style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onGlass),
                     ),
                     const SizedBox(height: 16),
-                    Card(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                    GlassContainer(
+                      borderRadius: 16,
+                      blur: 14,
+                      darkMaterial: true,
                       child: ListTile(
                         title: const Text('Reset All Progress',
                             style: TextStyle(
-                                color: Colors.redAccent,
+                                color: AppColors.glassWrong,
                                 fontWeight: FontWeight.bold)),
                         subtitle: const Text(
                             'Clear all learned letters, stars and streak'),
                         trailing: const Icon(Icons.delete_forever,
-                            color: Colors.redAccent),
+                            color: AppColors.glassWrong),
                         onTap: _confirmResetProgress,
                       ),
                     ),

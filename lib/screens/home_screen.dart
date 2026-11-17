@@ -8,6 +8,9 @@ import '../utils/app_colors.dart';
 import '../utils/navigator_util.dart';
 import '../services/ad_manager.dart';
 import '../widgets/banner_ad_widget.dart';
+import '../widgets/nav_icon_button.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/mesh_background.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialTab;
@@ -124,8 +127,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0EEFF),
+    return GlassScaffold(
       bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Padding(
@@ -136,35 +138,32 @@ class _HomeScreenState extends State<HomeScreen>
               const SizedBox(height: 8),
               Row(
                 children: [
-                  IconButton(
+                  NavIconButton(
+                    icon: Icons.arrow_back_ios_rounded,
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_rounded),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF2D2D4E),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
-                    'Learn Myanmar Alphabet',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF2D2D4E),
+                  const Expanded(
+                    child: Text(
+                      'Learn Myanmar Alphabet',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.onGlass,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              Container(
+              GlassContainer(
+                borderRadius: 30,
+                blur: 10,
+                fillOpacity: 0.08,
+                specularOpacity: 0,
                 padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(30),
-                ),
                 child: Row(
                   children: [
                     _buildToggleTab(
@@ -214,22 +213,17 @@ class _HomeScreenState extends State<HomeScreen>
   }) {
     return Expanded(
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: selected ? Colors.white : Colors.transparent,
+            color: selected ? AppColors.white(0.16) : Colors.transparent,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    )
-                  ]
-                : [],
+            border: Border.all(
+              color: selected ? AppColors.white(0.24) : Colors.transparent,
+            ),
           ),
           child: Center(
             child: Text(
@@ -237,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen>
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
-                color: selected ? const Color(0xFF2D2D4E) : Colors.grey,
+                color: selected ? AppColors.onGlass : AppColors.white(0.5),
               ),
             ),
           ),
@@ -268,49 +262,45 @@ class _LetterGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         final item = items[index];
         final color = Color(item.colorValue);
-        return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              NavigatorUtil.push(
-                context,
-                TracingScreenWithNav(items: items, startIndex: index),
-              );
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: color.withValues(alpha: 0.4),
-                  width: 1.5,
+        // blur: 0 -> no BackdropFilter per cell (33+ cells); the mesh behind
+        // is smooth so it looks the same and stays cheap on low-end phones.
+        return GlassContainer(
+          borderRadius: 16,
+          blur: 0,
+          tint: color.withValues(alpha: 0.18),
+          borderColor: color.withValues(alpha: 0.5),
+          alignment: Alignment.center,
+          onTap: () {
+            NavigatorUtil.push(
+              context,
+              TracingScreenWithNav(items: items, startIndex: index),
+            );
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                item.character,
+                style: TextStyle(
+                  fontFamily: 'Pyidaungsu',
+                  fontSize: 30,
+                  color: AppColors.onGlass,
+                  fontWeight: FontWeight.bold,
+                  shadows: [
+                    Shadow(color: color.withValues(alpha: 0.8), blurRadius: 14),
+                  ],
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    item.character,
-                    style: TextStyle(
-                      fontFamily: 'Pyidaungsu',
-                      fontSize: 30,
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.name,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: color,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 4),
+              Text(
+                item.name,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.onGlassMuted,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
+            ],
           ),
         );
       },

@@ -5,6 +5,9 @@ import '../models/flashcard.dart';
 import '../utils/app_colors.dart';
 import '../services/ad_manager.dart';
 import '../widgets/nav_icon_button.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/glass_progress_bar.dart';
+import '../widgets/mesh_background.dart';
 
 class FlashcardScreen extends StatefulWidget {
   const FlashcardScreen({super.key});
@@ -60,8 +63,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
     final total = _flashcards.length;
     final progress = total == 0 ? 0.0 : (currentIndex + 1) / total;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0EEFF),
+    return GlassScaffold(
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -85,35 +87,32 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF2D2D4E),
+                      color: AppColors.onGlass,
                     ),
                   ),
                   const Spacer(),
                   // Card counter
                   if (total > 0)
-                    Text(
-                      '${currentIndex + 1} / $total',
-                      style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600),
+                    GlassContainer(
+                      borderRadius: 14,
+                      blur: 10,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      child: Text(
+                        '${currentIndex + 1} / $total',
+                        style: TextStyle(
+                            color: AppColors.white(0.75),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600),
+                      ),
                     ),
                 ],
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
 
               // ---- Progress bar ----
-              if (total > 0)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: Colors.white,
-                    color: AppColors.primary,
-                    minHeight: 6,
-                  ),
-                ),
+              if (total > 0) GlassProgressBar(value: progress, height: 6),
 
               const SizedBox(height: 16),
 
@@ -155,11 +154,11 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.touch_app, size: 14, color: Colors.grey[400]),
+                    Icon(Icons.touch_app, size: 14, color: AppColors.white(0.45)),
                     const SizedBox(width: 4),
                     Text(
                       'Tap to flip  •  Swipe to navigate',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                      style: TextStyle(fontSize: 12, color: AppColors.white(0.45)),
                     ),
                   ],
                 ),
@@ -186,104 +185,94 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   }
 
   Widget _buildFront(Flashcard card) {
-    return Card(
+    return GlassContainer(
       key: const ValueKey('front'),
-      elevation: 8,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        width: 340,
-        height: 320,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.white, Colors.indigo.withValues(alpha: 0.05)],
-          ),
-        ),
-        child: Text(
-          card.letter,
-          style: const TextStyle(
-            fontSize: 100,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Pyidaungsu',
-            color: Color(0xFF2D2D4E),
-          ),
+      width: 340,
+      height: 320,
+      borderRadius: 24,
+      blur: 16,
+      fillOpacity: 0.09,
+      specularOpacity: 0.14,
+      alignment: Alignment.center,
+      child: Text(
+        card.letter,
+        style: TextStyle(
+          fontSize: 100,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Pyidaungsu',
+          color: AppColors.onGlass,
+          shadows: [
+            Shadow(color: AppColors.white(0.25), blurRadius: 24),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildBack(Flashcard card) {
-    return Card(
+    return GlassContainer(
       key: const ValueKey('back'),
-      elevation: 8,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        width: 340,
-        height: 320,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          color: Colors.white,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  card.pronunciation,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D2D4E),
-                  ),
+      width: 340,
+      height: 320,
+      borderRadius: 24,
+      blur: 16,
+      fillOpacity: 0.09,
+      specularOpacity: 0.14,
+      padding: const EdgeInsets.all(20),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                card.pronunciation,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onGlass,
                 ),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(Icons.volume_up, color: AppColors.primary),
-                  onPressed: () => SoundService.playLetter(card.audio),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-            Image.asset(card.image, height: 100, fit: BoxFit.contain),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  card.word ?? '',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Pyidaungsu',
-                    color: Color(0xFF2D2D4E),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(Icons.volume_up, color: AppColors.primary),
-                  onPressed: () => SoundService.playLetter(card.descriptionAudio),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              card.description,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                fontStyle: FontStyle.italic,
               ),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: const Icon(Icons.volume_up, color: AppColors.primaryLight),
+                onPressed: () => SoundService.playLetter(card.audio),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          Image.asset(card.image, height: 100, fit: BoxFit.contain),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                card.word ?? '',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Pyidaungsu',
+                  color: AppColors.onGlass,
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: const Icon(Icons.volume_up, color: AppColors.primaryLight),
+                onPressed: () => SoundService.playLetter(card.descriptionAudio),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            card.description,
+            style: TextStyle(
+              fontSize: 16,
+              color: AppColors.white(0.65),
+              fontStyle: FontStyle.italic,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

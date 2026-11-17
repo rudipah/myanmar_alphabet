@@ -9,6 +9,10 @@ import '../services/preferences_service.dart';
 import '../services/ad_manager.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/nav_icon_button.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/glass_button.dart';
+import '../widgets/glass_progress_bar.dart';
+import '../widgets/mesh_background.dart';
 
 enum QuizMode { visual, audio }
 
@@ -183,16 +187,14 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFF0EEFF),
+      return const GlassScaffold(
         body: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+          child: CircularProgressIndicator(color: Colors.white),
         ),
       );
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0EEFF),
+    return GlassScaffold(
       bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Padding(
@@ -213,7 +215,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF2D2D4E),
+                      color: AppColors.onGlass,
                     ),
                   ),
                 ],
@@ -226,9 +228,9 @@ class _QuizScreenState extends State<QuizScreen> {
                 children: [
                   Text(
                     currentMode == QuizMode.visual ? 'Visual Mode' : 'Audio Mode',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.primary,
+                        color: AppColors.white(0.8),
                         fontWeight: FontWeight.bold),
                   ),
                   Switch(
@@ -239,23 +241,26 @@ class _QuizScreenState extends State<QuizScreen> {
                         _generateQuestion();
                       });
                     },
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: Colors.white,
+                    activeTrackColor: AppColors.primary,
+                    inactiveThumbColor: AppColors.white(0.7),
+                    inactiveTrackColor: AppColors.white(0.12),
+                    trackOutlineColor:
+                        WidgetStatePropertyAll(AppColors.white(0.25)),
                   ),
                 ],
               ),
 
               // ---- Progress Bar ----
-              LinearProgressIndicator(
+              GlassProgressBar(
                 value: (currentQuestionIndex + 1) / 10,
-                backgroundColor: Colors.white,
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(10),
+                height: 8,
               ),
               const SizedBox(height: 8),
               Text(
                 'Question ${currentQuestionIndex + 1} of 10',
-                style: const TextStyle(
-                    color: Colors.grey, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    color: AppColors.white(0.55), fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 20),
 
@@ -268,49 +273,46 @@ class _QuizScreenState extends State<QuizScreen> {
                           ? 'Which letter is this?'
                           : 'Which letter is this sound?',
                       style: const TextStyle(
-                          fontSize: 20, color: Color(0xFF2D2D4E)),
+                          fontSize: 20, color: AppColors.onGlass),
                     ),
                     const SizedBox(height: 20),
-                    GestureDetector(
+                    GlassContainer(
+                      width: 150,
+                      height: 150,
+                      borderRadius: 24,
+                      blur: 16,
+                      fillOpacity: 0.09,
+                      specularOpacity: 0.13,
+                      alignment: Alignment.center,
                       onTap: () => SoundService.playLetter(correctCard.audio),
-                      child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: currentMode == QuizMode.visual
-                              ? Text(
-                                  correctCard.letter,
-                                  style: const TextStyle(
-                                      fontSize: 80,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Pyidaungsu'),
-                                )
-                              : const Icon(Icons.volume_up,
-                                  size: 80, color: AppColors.primary),
-                        ),
-                      ),
+                      child: currentMode == QuizMode.visual
+                          ? Text(
+                              correctCard.letter,
+                              style: TextStyle(
+                                fontSize: 80,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Pyidaungsu',
+                                color: AppColors.onGlass,
+                                shadows: [
+                                  Shadow(
+                                      color: AppColors.white(0.25),
+                                      blurRadius: 24),
+                                ],
+                              ),
+                            )
+                          : const Icon(Icons.volume_up,
+                              size: 80, color: AppColors.onGlass),
                     ),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.volume_up,
-                            size: 16, color: Colors.grey),
+                        Icon(Icons.volume_up,
+                            size: 16, color: AppColors.white(0.45)),
                         const SizedBox(width: 4),
-                        const Text('Tap to hear sound',
-                            style:
-                                TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('Tap to hear sound',
+                            style: TextStyle(
+                                color: AppColors.white(0.45), fontSize: 12)),
                       ],
                     ),
                   ],
@@ -337,18 +339,13 @@ class _QuizScreenState extends State<QuizScreen> {
               if (isAnswered)
                 SizedBox(
                   width: double.infinity,
-                  height: 60,
-                  child: ElevatedButton(
+                  child: GlassButton(
+                    label: 'Next Question',
+                    height: 60,
+                    fontSize: 18,
+                    trailing: const Icon(Icons.arrow_forward,
+                        size: 20, color: AppColors.onGlass),
                     onPressed: _nextQuestion,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: const Text('Next Question',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
             ],
@@ -361,48 +358,34 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget _buildOptionButton(Flashcard option, int index) {
     final isCorrect = option.letter == correctCard.letter;
 
-    Color bgColor = Colors.white;
-    Color borderColor = AppColors.primary.withValues(alpha: 0.3);
-    double borderWidth = 1;
+    Color? tint; // null = neutral glass
+    Color? borderColor;
 
     if (isAnswered) {
       if (isCorrect) {
-        bgColor = Colors.greenAccent;
-        borderColor = Colors.green;
-        borderWidth = 2;
+        tint = AppColors.glassCorrect.withValues(alpha: 0.28);
+        borderColor = AppColors.glassCorrect.withValues(alpha: 0.7);
       } else if (clickedIndex == index) {
-        bgColor = Colors.redAccent;
-        borderColor = Colors.red;
-        borderWidth = 2;
+        tint = AppColors.glassWrong.withValues(alpha: 0.26);
+        borderColor = AppColors.glassWrong.withValues(alpha: 0.7);
       }
     }
 
-    return GestureDetector(
+    return GlassContainer(
+      borderRadius: 18,
+      blur: 12,
+      fillOpacity: 0.09,
+      tint: tint,
+      borderColor: borderColor,
+      alignment: Alignment.center,
       onTap: () => _checkAnswer(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-          border: Border.all(color: borderColor, width: borderWidth),
-        ),
-        child: Center(
-          child: Text(
-            option.letter,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Pyidaungsu',
-              color: Color(0xFF2D2D4E),
-            ),
-          ),
+      child: Text(
+        option.letter,
+        style: const TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Pyidaungsu',
+          color: AppColors.onGlass,
         ),
       ),
     );

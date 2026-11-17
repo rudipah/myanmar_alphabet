@@ -1,6 +1,6 @@
 # Myanmar Alphabet — Project Handoff & Update Log
 
-> **Status:** Reflects the code in `lib.zip` as of 16 Nov 2026 (after the ad-reliability / streak / cleanup session, §3A). Where this file and the code disagree, the code wins.
+> **Status:** Reflects the code in `lib.zip` as of 16 Nov 2026 (after §3A ad/streak/cleanup, §3B liquid glass UI, §3C menu simplification). Where this file and the code disagree, the code wins.
 >
 > **Purpose:** This document is written for any AI agent or developer continuing work on this project.
 > It captures the full current state, what was recently changed and why, what still needs doing,
@@ -29,8 +29,8 @@
 - **Matching game** — match letter cards to image cards (6 pairs, confetti on win)
 - **Progress screen** — star-tier system (0 / 1 / 2 / 3 stars per letter based on practice count)
 - **Letter of the Day** — shown on the menu screen, changes daily
-- **Daily streak counter** — 🔥 badge on menu screen; counts days the child *finishes* a tracing, quiz round or matching round
-- **Sound toggle** — mute/unmute from menu screen and Settings
+- **Daily streak counter** — still recorded (counts days the child *finishes* a tracing, quiz round or matching round) but **not displayed anywhere since §3C**
+- **Sound toggle** — Settings → "Sound Effects" only (the menu button was removed in §3C)
 
 ### Key packages (pubspec.yaml)
 ```
@@ -66,7 +66,7 @@ lib/
 ├── painters/
 │   └── background_painter.dart      Custom painter for tracing screen background
 ├── screens/
-│   ├── menu_screen.dart             Home menu — streak badge, mute toggle, Letter of the Day
+│   ├── menu_screen.dart             Home menu — Letter of the Day, Start Learning, 2×2 grid, Settings (no streak badge / mute button, §3C)
 │   ├── home_screen.dart             Letter/number grid — tapping opens TracingScreenWithNav
 │   ├── tracing_screen.dart          Stroke-guided letter tracing
 │   ├── flashcard_screen.dart        Flip cards with progress bar and swipe hint
@@ -83,14 +83,18 @@ lib/
 │   └── tracing_validator.dart       Validates finger-tracing accuracy against stroke paths
 ├── utils/
 │   ├── ad_helper.dart               AdMob banner + interstitial ad unit IDs and load/show logic
-│   ├── app_colors.dart              Brand colour constants (primary: #6C5CE7)
+│   ├── app_colors.dart              Brand colour constants (primary: #6C5CE7) + glass palette (§3B)
 │   └── navigator_util.dart          Thin Navigator.push wrapper
 └── widgets/
-    ├── menu_button.dart             Styled button used on MenuScreen
+    ├── menu_button.dart             Glass menu button (isPrimary = purple-tinted glass)
+    ├── glass_container.dart         ★ NEW — core glass surface (blur + fill + border + specular)
+    ├── glass_button.dart            ★ NEW — tinted glass button (disabled state = onPressed null)
+    ├── glass_progress_bar.dart      ★ NEW — frosted track, lilac→pink animated fill
+    ├── mesh_background.dart         ★ NEW — animated mesh background + GlassScaffold wrapper
     ├── tracing_board.dart           Tracing UI scaffold widget
     ├── tracing_canvas.dart          CustomPainter canvas for finger tracing
     ├── banner_ad_widget.dart        ★ NEW — self-contained AdMob banner (load/state/dispose)
-    └── nav_icon_button.dart         ★ NEW — shared back/nav icon button used across screens
+    └── nav_icon_button.dart         Shared back/nav icon button (now a glass pill)
 ```
 
 ---
@@ -155,7 +159,7 @@ lib/
 
 #### Daily streak counter added
 - **Files:** `lib/services/preferences_service.dart`, `lib/screens/menu_screen.dart`
-- A 🔥 streak badge appears in the top-left of the menu screen.
+- (Historical) a 🔥 streak badge was shown top-left on the menu; removed in §3C.
 - Superseded by §3A.3: `PreferencesService.recordStudyActivity()` now updates the streak (see below).
 - Streak is also reset when "Reset All Progress" is triggered in Settings.
 
@@ -232,7 +236,7 @@ After pulling changes, run `flutter pub get` to sync.
 - **Files:** `lib/services/preferences_service.dart`, `lib/screens/menu_screen.dart`, `tracing_screen.dart`, `quiz_screen.dart`, `matching_game_screen.dart`
 - Old: updated whenever the menu opened, and compared `DateTime.now().difference(lastDate).inDays`, which can wrongly break a streak on a daylight-saving change day.
 - New: dates are compared as calendar dates (UTC date-only values). `getAndUpdateStreak()` was **removed**; `recordStudyActivity()` is called on: successful tracing (`_onDone`), quiz result dialog, matching win dialog. `getCurrentStreak()` returns 0 if the last study day was before yesterday.
-- Menu shows `getCurrentStreak()` and refreshes it when the child returns from any sub-screen (`_open()` helper replaces `NavigatorUtil.push` in `menu_screen.dart`).
+- (Historical) the menu showed `getCurrentStreak()`; the badge was removed in §3C. `getCurrentStreak()` currently has no caller.
 - Also fixed in `menu_screen.dart`: the Letter-of-the-Day day-of-year used local-time `difference`, which is off by one for the half of the year after the spring clock change (e.g. UK). Now uses UTC dates.
 
 ### 3A.4 Cleanup
@@ -243,13 +247,48 @@ After pulling changes, run `flutter pub get` to sync.
 - **File:** `lib/screens/menu_screen.dart`
 - Problem: the purple gradient was only on the `body`, while `BannerAdWidget` sits in `bottomNavigationBar` (a separate Scaffold slot). That slot, including the banner's 8px top gap and the bottom safe area, showed the default white Scaffold background.
 - Fix: the gradient `Container` now wraps the whole `Scaffold`, and the Scaffold uses `backgroundColor: Colors.transparent`, so the gradient also shows behind the banner area.
-- Other screens use a flat `#F0EEFF` Scaffold background, so they are not affected. If a screen gets a gradient body in future, put the gradient above the Scaffold in the same way.
+- Superseded by §3B: every screen now uses `GlassScaffold`, so the background always sits behind the banner slot.
 - Any white *inside* the ad itself is the ad creative's own background and cannot be changed from the app.
 
 ### 3A.5 Corrections to earlier sections of this document
 - Quiz hint / rewarded ad: **does not exist** in the code (see §3.3).
 - Banners are on every screen **except `FlashcardScreen`** (it has no `BannerAdWidget`). Add one if wanted.
 - Unity is interstitial-only. Ad flow: interstitial after leaving Flashcards, after quiz completion, after matching completion.
+
+---
+
+## 3B. Liquid Glass UI (implemented from `liquid_glass_preview.html`)
+
+> Not compiled/run in the authoring environment (no Flutter SDK; files were syntax-parsed only). Run `flutter analyze` and click through every screen. `lib_1.zip` was the pre-glass code plus the four legacy files from §3A.4 — those four are deleted again in the zip delivered with this change.
+
+**New widgets**
+- `GlassContainer` — `ClipRRect` → optional `BackdropFilter` → animated translucent fill + 1px border → top-half white specular gradient → transparent `Material` (so ink ripples and `ListTile`s paint above the glass). Params: `blur`, `fillOpacity`, `tint`, `borderColor`, `specularOpacity`, `onTap`, `darkMaterial`.
+  - `darkMaterial: true` re-themes Material widgets inside (ListTile, Switch, Radio, Divider) to light-on-dark — used by the Settings cards.
+  - **`blur: 0` skips the `BackdropFilter`.** Use it for grids of small tiles (Letters, Progress, Matching). The mesh behind is smooth so it looks the same, and it avoids 30+ backdrop blurs on low-end Android.
+- `MeshBackground` / `GlassScaffold` — opaque dark base (`#150D2E`) + four radial colour blobs that drift slowly (≈15 fps, driven by one app-wide clock so it is continuous between screens, muted when the system "remove animations" setting is on). `GlassScaffold` = mesh + transparent `Scaffold`; **every screen now uses it instead of `Scaffold(backgroundColor: ...)`**. It also sets light status-bar icons and a dark navigation bar, and sits behind the banner ad area (this also replaces the §3A.4b fix on the menu).
+- `GlassButton`, `GlassProgressBar` — see file map.
+- `AppColors` gained: `meshBase`, `onGlass` (white 95%), `onGlassMuted` (55%), `glassCorrect`, `glassWrong`, glass alpha constants, and `AppColors.white(alpha)`.
+
+**Screens changed:** menu, flashcard, quiz, letters (`home_screen`), progress, settings — as in the preview — plus **matching and tracing**, which were not in the preview but would otherwise be dark text on the new dark background.
+- Letters: per-letter colours are kept as a tint on each glass tile and a glow behind a white character (dark/bright letter colours no longer have to be readable on their own).
+- Progress: star tiers use glow colours (orange / silver / lilac).
+- Quiz: correct/wrong options are green/red tinted glass; "Next Question" is a `GlassButton`.
+- Tracing: the **drawing board stays cream** on purpose (stroke contrast + validation); only the header, Clear (neutral glass) and Done (tinted with the letter's colour) changed.
+- `AlertDialog`s (quiz result, matching win, reset progress) and SnackBars are still the default light Material style.
+
+**Rules for new screens**
+- Wrap the screen in `GlassScaffold`; use white / `AppColors.onGlass` text; build cards with `GlassContainer`.
+- Never put a `BackdropFilter` on every item of a long list/grid (`blur: 0`).
+
+---
+
+## 3C. Menu simplification (17 Nov 2026)
+
+- **File:** `lib/screens/menu_screen.dart`
+- Removed the top row: the 🔥 "N day(s)" streak badge and the mute/unmute button.
+- Removed the code that only served them: the `_streak` field, the streak load, the `_toggleSound()` method, and the streak refresh after returning from a sub-screen. `_open()` is now a plain `Navigator.push`.
+- **Unchanged:** the streak is still recorded by `PreferencesService.recordStudyActivity()` (tracing, quiz, matching) and cleared by "Reset All Progress", so it can be shown again later. Letter of the Day still respects the sound setting (`isSoundEnabled()`).
+- Sound can now only be turned off in **Settings → Sound Effects**. Consider whether a parent-facing quick mute is still wanted.
 
 ---
 
@@ -368,4 +407,4 @@ flutter build ipa --release
 
 ---
 
-*Last updated: 16 November 2026 — includes §3A (ad reliability, streak rewrite, cleanup).*
+*Last updated: 17 November 2026 — includes §3A (ad reliability, streak, cleanup), §3B (liquid glass UI) and §3C (menu simplification).*

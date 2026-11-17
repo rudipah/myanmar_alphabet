@@ -7,6 +7,9 @@ import 'package:confetti/confetti.dart';
 import '../utils/app_colors.dart';
 import '../services/preferences_service.dart';
 import '../widgets/banner_ad_widget.dart';
+import '../widgets/nav_icon_button.dart';
+import '../widgets/glass_button.dart';
+import '../widgets/mesh_background.dart';
 
 class TracingScreen extends StatefulWidget {
   final MyanmarLetter letter;
@@ -214,8 +217,7 @@ class _TracingScreenState extends State<TracingScreen>
   Widget build(BuildContext context) {
     final color = Color(widget.letter.colorValue);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0EEFF),
+    return GlassScaffold(
       bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Column(
@@ -225,16 +227,9 @@ class _TracingScreenState extends State<TracingScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
+                  NavIconButton(
+                    icon: Icons.home_rounded,
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.home_rounded, size: 28),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      padding: const EdgeInsets.all(18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
                   ),
                   const SizedBox(width: 20),
                   Container(
@@ -274,7 +269,7 @@ class _TracingScreenState extends State<TracingScreen>
                               style: const TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF2D2D4E),
+                                color: AppColors.onGlass,
                               ),
                             ),
                           ],
@@ -284,7 +279,7 @@ class _TracingScreenState extends State<TracingScreen>
                           'Trace the letter',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: AppColors.white(0.55),
                           ),
                         ),
                       ],
@@ -397,52 +392,31 @@ class _TracingScreenState extends State<TracingScreen>
               child: Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: GlassButton(
+                      label: 'Clear',
+                      neutral: true,
+                      height: 52,
+                      fontSize: 16,
+                      leading: const Icon(Icons.refresh,
+                          size: 18, color: AppColors.onGlass),
                       onPressed: _onClear,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                          color: Colors.grey.withOpacity(0.5),
-                          width: 2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.refresh, size: 18),
-                          SizedBox(width: 6),
-                          Text("Clear"),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
+                    child: GlassButton(
+                      label: _hasDrawn ? 'Done' : 'Draw to continue',
+                      tint: Color(widget.letter.colorValue),
+                      height: 52,
+                      fontSize: 16,
+                      trailing: Icon(
+                        _hasDrawn ? Icons.arrow_forward : Icons.brush,
+                        size: 18,
+                        color: _hasDrawn
+                            ? AppColors.onGlass
+                            : AppColors.white(0.4),
+                      ),
                       onPressed: _hasDrawn ? _onDone : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _hasDrawn
-                            ? Color(widget.letter.colorValue)
-                            : Colors.grey,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(_hasDrawn ? "Done" : "Draw to continue"),
-                          const SizedBox(width: 6),
-                          Icon(
-                            _hasDrawn ? Icons.arrow_forward : Icons.brush,
-                            size: 18,
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ],

@@ -9,6 +9,9 @@ import '../services/preferences_service.dart';
 import '../services/ad_manager.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/nav_icon_button.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/glass_button.dart';
+import '../widgets/mesh_background.dart';
 
 class MatchingGameScreen extends StatefulWidget {
   const MatchingGameScreen({super.key});
@@ -202,8 +205,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0EEFF),
+    return GlassScaffold(
       bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Stack(
@@ -225,17 +227,23 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
                         style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF2D2D4E)),
+                            color: AppColors.onGlass),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  Text(
-                    'Matches: $matchesFound / 6',
-                    style: const TextStyle(
-                        fontSize: 18,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold),
+                  GlassContainer(
+                    borderRadius: 20,
+                    blur: 12,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(
+                      'Matches: $matchesFound / 6',
+                      style: const TextStyle(
+                          fontSize: 18,
+                          color: AppColors.onGlass,
+                          fontWeight: FontWeight.bold),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   Expanded(
@@ -253,19 +261,14 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
                   if (matchesFound == 6)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 20),
-                      child: ElevatedButton(
-                        onPressed: _showWinDialog,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
+                      child: SizedBox(
+                        width: 240,
+                        child: GlassButton(
+                          label: 'See Result',
+                          height: 56,
+                          fontSize: 18,
+                          onPressed: _showWinDialog,
                         ),
-                        child: const Text('See Result',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
                       ),
                     ),
                 ],
@@ -288,6 +291,20 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
         index == firstSelectedIdx || index == secondSelectedIdx;
     final isMatched = card.isMatched;
 
+    // Face-down: purple glass. Selected: bright glass. Matched: green glass.
+    Color tint;
+    Color border;
+    if (isMatched) {
+      tint = AppColors.glassCorrect.withValues(alpha: 0.28);
+      border = AppColors.glassCorrect.withValues(alpha: 0.75);
+    } else if (isSelected) {
+      tint = AppColors.white(0.22);
+      border = AppColors.white(0.6);
+    } else {
+      tint = AppColors.primary.withValues(alpha: 0.35);
+      border = const Color(0x59B4A0FF);
+    }
+
     return GestureDetector(
       onTap: () {
         if (!isMatched) _onCardTap(index);
@@ -295,40 +312,23 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
       child: AnimatedScale(
         scale: isSelected ? 1.05 : 1.0,
         duration: const Duration(milliseconds: 200),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          decoration: BoxDecoration(
-            color: isMatched
-                ? Colors.greenAccent
-                : (isSelected ? Colors.white : const Color(0xFFBDBBFF)),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2)),
-            ],
-            border: Border.all(
-              color: isMatched
-                  ? Colors.green
-                  : (isSelected ? AppColors.primary : Colors.transparent),
-              width: isMatched ? 3 : 2,
-            ),
-          ),
-          child: Center(
-            child: isSelected || isMatched
-                ? (card.type == CardType.letter
-                    ? Text(card.letter!,
-                        style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Pyidaungsu',
-                            color: Color(0xFF2D2D4E)))
-                    : Image.asset(card.image!,
-                        width: 90, height: 90, fit: BoxFit.contain))
-                : const Icon(Icons.help_outline,
-                    size: 32, color: Colors.white),
-          ),
+        child: GlassContainer(
+          borderRadius: 16,
+          blur: 0,
+          tint: tint,
+          borderColor: border,
+          alignment: Alignment.center,
+          child: isSelected || isMatched
+              ? (card.type == CardType.letter
+                  ? Text(card.letter!,
+                      style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Pyidaungsu',
+                          color: AppColors.onGlass))
+                  : Image.asset(card.image!,
+                      width: 90, height: 90, fit: BoxFit.contain))
+              : Icon(Icons.help_outline, size: 32, color: AppColors.white(0.85)),
         ),
       ),
     );
