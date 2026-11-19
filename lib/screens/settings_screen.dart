@@ -39,19 +39,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _toggleAudioFormat(AudioFormat format) async {
     await PreferencesService.setAudioFormat(format);
+    if (!mounted) return;
     setState(() => _currentFormat = format);
   }
 
   Future<void> _toggleSound(bool value) async {
     await PreferencesService.setSoundEnabled(value);
     if (!value) await SoundService.stop(); // Cut off any audio already playing
+    if (!mounted) return;
     setState(() => _soundEnabled = value);
   }
 
   void _confirmResetProgress() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Reset Progress?'),
@@ -61,19 +63,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              // Grab what we need from the screen's context BEFORE any await.
+              final messenger = ScaffoldMessenger.of(context);
+              Navigator.pop(dialogContext);
               await PreferencesService.resetProgress();
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Progress reset successfully!')),
-                );
-              }
+              if (!mounted) return;
+              messenger.showSnackBar(
+                const SnackBar(
+                    content: Text('Progress reset successfully!')),
+              );
             },
             child: const Text('Reset',
                 style: TextStyle(
@@ -81,6 +84,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// One selectable row of the audio-format "radio group". Built from a
+  /// ListTile + icon instead of Radio, whose groupValue/onChanged API is
+  /// deprecated in recent Flutter versions (replaced by RadioGroup).
+  Widget _buildFormatTile({
+    required String title,
+    required String subtitle,
+    required AudioFormat format,
+  }) {
+    final selected = _currentFormat == format;
+    return ListTile(
+      title: Text(title),
+      subtitle: Text(subtitle),
+      enabled: _soundEnabled,
+      selected: selected,
+      selectedColor: AppColors.primaryLight,
+      trailing: Icon(
+        selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+        color: !_soundEnabled
+            ? AppColors.white(0.25)
+            : (selected ? AppColors.primaryLight : AppColors.white(0.7)),
+      ),
+      onTap: _soundEnabled ? () => _toggleAudioFormat(format) : null,
     );
   }
 
@@ -136,40 +164,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             title: const Text('Sound Effects'),
                             subtitle: const Text('Play letter sounds and feedback'),
                             value: _soundEnabled,
-                            activeColor: AppColors.primary,
+                            activeThumbColor: Colors.white,
+                            activeTrackColor: AppColors.primary,
+                            inactiveThumbColor: AppColors.white(0.7),
+                            inactiveTrackColor: AppColors.white(0.12),
+                            trackOutlineColor:
+                                WidgetStatePropertyAll(AppColors.white(0.25)),
                             onChanged: _toggleSound,
                           ),
                           const Divider(height: 1),
                           // Audio format (only relevant when sound is on)
-                          ListTile(
-                            title: const Text('Short Audio'),
-                            subtitle: const Text('Plays the quick letter sound'),
-                            enabled: _soundEnabled,
-                            trailing: Radio<AudioFormat>(
-                              value: AudioFormat.short,
-                              groupValue: _currentFormat,
-                              onChanged: _soundEnabled
-                                  ? (val) {
-                                      if (val != null) _toggleAudioFormat(val);
-                                    }
-                                  : null,
-                            ),
+                          _buildFormatTile(
+                            title: 'Short Audio',
+                            subtitle: 'Plays the quick letter sound',
+                            format: AudioFormat.short,
                           ),
                           const Divider(height: 1),
-                          ListTile(
-                            title: const Text('Long Audio'),
-                            subtitle:
-                                const Text('Plays expanded pronunciation'),
-                            enabled: _soundEnabled,
-                            trailing: Radio<AudioFormat>(
-                              value: AudioFormat.long,
-                              groupValue: _currentFormat,
-                              onChanged: _soundEnabled
-                                  ? (val) {
-                                      if (val != null) _toggleAudioFormat(val);
-                                    }
-                                  : null,
-                            ),
+                          _buildFormatTile(
+                            title: 'Long Audio',
+                            subtitle: 'Plays expanded pronunciation',
+                            format: AudioFormat.long,
                           ),
                         ],
                       ),

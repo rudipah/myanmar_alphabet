@@ -5,6 +5,7 @@ import '../models/flashcard.dart';
 import '../utils/app_colors.dart';
 import '../services/ad_manager.dart';
 import '../widgets/nav_icon_button.dart';
+import '../widgets/banner_ad_widget.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_progress_bar.dart';
 import '../widgets/mesh_background.dart';
@@ -43,6 +44,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   }
 
   void _nextCard() {
+    if (_flashcards.isEmpty) return; // avoid "% 0" before data has loaded
     setState(() {
       currentIndex = (currentIndex + 1) % _flashcards.length;
       isFlipped = false;
@@ -50,6 +52,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   }
 
   void _prevCard() {
+    if (_flashcards.isEmpty) return;
     setState(() {
       currentIndex = (currentIndex - 1 + _flashcards.length) % _flashcards.length;
       isFlipped = false;
@@ -64,6 +67,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
     final progress = total == 0 ? 0.0 : (currentIndex + 1) / total;
 
     return GlassScaffold(
+      bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -242,7 +246,12 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
             ],
           ),
           const SizedBox(height: 15),
-          Image.asset(card.image, height: 100, fit: BoxFit.contain),
+          Image.asset(
+            card.image,
+            height: 100,
+            fit: BoxFit.contain,
+            cacheHeight: 300, // decode small — full-size PNGs cause flip jank
+          ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

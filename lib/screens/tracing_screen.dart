@@ -122,6 +122,7 @@ class _TracingScreenState extends State<TracingScreen>
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(widget.letter.colorValue),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -162,6 +163,7 @@ class _TracingScreenState extends State<TracingScreen>
 
   @override
   void dispose() {
+    _celebrateController.dispose();
     _confettiController.dispose();
     super.dispose();
   }
@@ -192,7 +194,9 @@ class _TracingScreenState extends State<TracingScreen>
     await PreferencesService.incrementLetterProgress(widget.letter.character);
     await PreferencesService.recordStudyActivity();
 
+    if (!mounted) return; // left the screen while saving
     _showSuccessPopup(() {
+      if (!mounted) return;
       _canvasKey.currentState?.clear();
       setState(() => _hasDrawn = false);
       widget.onNext();
@@ -205,7 +209,8 @@ class _TracingScreenState extends State<TracingScreen>
     setState(() => _isSpeaking = true);
 
     try {
-      await SoundService.playLetter(widget.letter.audioFile);
+      await SoundService.playLetter(widget.letter.audioFile,
+          waitForCompletion: true);
     } finally {
       if (mounted) {
         setState(() => _isSpeaking = false);
@@ -238,7 +243,7 @@ class _TracingScreenState extends State<TracingScreen>
                       color: color,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: color.withOpacity(0.4),
+                        color: color.withValues(alpha: 0.4),
                         width: 2,
                       ),
                     ),
@@ -289,10 +294,10 @@ class _TracingScreenState extends State<TracingScreen>
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: _isSpeaking ? color : color.withOpacity(0.1),
+                      color: _isSpeaking ? color : color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: color.withOpacity(0.4),
+                        color: color.withValues(alpha: 0.4),
                         width: 2,
                       ),
                     ),
@@ -304,7 +309,7 @@ class _TracingScreenState extends State<TracingScreen>
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.white,
                           side: BorderSide(
-                            color: color.withOpacity(0.4),
+                            color: color.withValues(alpha: 0.4),
                             width: 2,
                           ),
                           padding: const EdgeInsets.all(12),
@@ -343,12 +348,12 @@ class _TracingScreenState extends State<TracingScreen>
                                   color: const Color(0xFFFFFDF5),
                                   borderRadius: BorderRadius.circular(24),
                                   border: Border.all(
-                                    color: Colors.grey.withOpacity(0.2),
+                                    color: Colors.grey.withValues(alpha: 0.2),
                                     width: 1,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.primary.withOpacity(_glowAnim.value),
+                                      color: AppColors.primary.withValues(alpha: _glowAnim.value),
                                       blurRadius: 25,
                                       spreadRadius: 3,
                                     ),

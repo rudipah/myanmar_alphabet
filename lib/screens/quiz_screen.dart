@@ -50,23 +50,32 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _generateQuestion() {
+    // Screen closed while the data was loading, or not enough cards to build
+    // a 4-option question.
+    if (!mounted || _flashcards.length < 4) return;
+
+    final random = Random();
+    final correct = _flashcards[random.nextInt(_flashcards.length)];
+
+    // Exactly 3 DISTINCT wrong answers (before, the same wrong letter could
+    // be picked twice, giving two identical option buttons).
+    final seen = <String>{correct.letter};
+    final wrong = <Flashcard>[];
+    for (final card in List<Flashcard>.from(_flashcards)..shuffle(random)) {
+      if (seen.add(card.letter)) {
+        wrong.add(card);
+        if (wrong.length == 3) break;
+      }
+    }
+    if (wrong.length < 3) return;
+
+    final newOptions = [correct, ...wrong]..shuffle(random);
+
     setState(() {
       isAnswered = false;
       clickedIndex = null;
-
-      final random = Random();
-      correctCard = _flashcards[random.nextInt(_flashcards.length)];
-
-      List<Flashcard> wrongOptions = [];
-      while (wrongOptions.length < 3) {
-        final randomCard = _flashcards[random.nextInt(_flashcards.length)];
-        if (randomCard.letter != correctCard.letter) {
-          wrongOptions.add(randomCard);
-        }
-      }
-
-      options = [correctCard, ...wrongOptions];
-      options.shuffle();
+      correctCard = correct;
+      options = newOptions;
       isLoading = false;
     });
 

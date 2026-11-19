@@ -1,12 +1,23 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Child-directed (Google Play Families) app: never collect the Android
+         Advertising ID. The Google Mobile Ads / Play Services libraries merge
+         these permissions in automatically, so they must be explicitly removed.
+         Verify in the merged manifest after every dependency upgrade. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID"
+        tools:node="remove" />
+
     <application
 
         android:label="Learn Myanmar Alphabet"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- AdMob App ID (test) -->
+        <!-- AdMob App ID (production — same publisher as the ad unit IDs in ad_helper.dart) -->
         <meta-data
         android:name="com.google.android.gms.ads.APPLICATION_ID"
         android:value="ca-app-pub-4129659429509766~4839286959"/>

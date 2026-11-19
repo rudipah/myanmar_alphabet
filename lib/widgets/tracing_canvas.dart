@@ -177,7 +177,7 @@ class _TracingPainter extends CustomPainter {
     final ghostStyle = TextStyle(
       fontFamily: 'Pyidaungsu',
       fontSize: short * 0.72,
-      color: letterColor.withOpacity(0.10),
+      color: letterColor.withValues(alpha: 0.10),
       fontWeight: FontWeight.bold,
     );
     final tp = TextPainter(
@@ -198,7 +198,7 @@ class _TracingPainter extends CustomPainter {
     }
 
     for (int i = 0; i < strokes.length; i++) {
-      _userPaint.color = validatedStrokes.contains(i) ? letterColor : letterColor.withOpacity(0.6);
+      _userPaint.color = validatedStrokes.contains(i) ? letterColor : letterColor.withValues(alpha: 0.6);
       _userPaint.strokeWidth = CanvasConfig.strokeWidth;
       _drawUserStroke(canvas, strokes[i], _userPaint);
     }
@@ -214,11 +214,11 @@ class _TracingPainter extends CustomPainter {
     if (guide.points.length < 2) return;
     final pts = guide.points.map((p) => _px(p, size)).toList();
 
-    _guidePaint.color = Colors.black.withOpacity(0.28);
+    _guidePaint.color = Colors.black.withValues(alpha: 0.28);
     _guidePaint.strokeWidth = CanvasConfig.guideLineWidth;
     _drawDashed(canvas, pts, _guidePaint);
 
-    _drawArrow(canvas, pts[pts.length - 2], pts.last, Colors.black.withOpacity(0.50));
+    _drawArrow(canvas, pts[pts.length - 2], pts.last, Colors.black.withValues(alpha: 0.50));
     _drawNumberCircle(canvas, pts.first, guide.label, letterColor);
   }
 
@@ -276,7 +276,9 @@ class _TracingPainter extends CustomPainter {
   void _drawUserStroke(Canvas canvas, List<Offset> pts, Paint paint) {
     if (pts.length < 2) return;
     final path = Path()..moveTo(pts[0].dx, pts[0].dy);
-    for (int i = 1; i < pts.length; i++) path.lineTo(pts[i].dx, pts[i].dy);
+    for (int i = 1; i < pts.length; i++) {
+      path.lineTo(pts[i].dx, pts[i].dy);
+    }
     canvas.drawPath(path, paint);
   }
 

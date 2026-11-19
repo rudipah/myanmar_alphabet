@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'sound_service.dart';
@@ -5,9 +6,17 @@ import 'unity_ads_service.dart';
 import 'ad_manager.dart';
 
 class AppInitializer {
+  /// Completes when the ad SDKs are initialised (immediately on web).
+  /// Banner widgets await this before requesting an ad.
+  static Future<void> adsReady = Future<void>.value();
+
+  /// Fast startup: only what the first screen needs is awaited. The ad SDKs
+  /// initialise in the background so the app is not stuck on a blank screen
+  /// while AdMob / Unity start up (can take a couple of seconds).
   static Future<void> init() async {
     if (!kIsWeb) {
-      // Child-directed app: these must be set BEFORE any ad request.
+      // Child-directed app: these must be set BEFORE any ad request, so they
+      // ARE awaited (fast, local settings only).
       // - Child-directed treatment (COPPA): no personalised ads / tracking
       // - Under age of consent (GDPR): same treatment for EEA/UK users
       // - Max content rating G: only family-safe ads
@@ -24,7 +33,16 @@ class AppInitializer {
         ),
       );
 
-      // Single, authoritative AdMob initialisation (not duplicated in main.dart)
+      // Slow part: runs in the background.
+      adsReady = _initAdSdks();
+    }
+
+    await SoundService.init();
+  }
+
+  static Future<void> _initAdSdks() async {
+    try {
+      // Single, authoritative AdMob initialisation
       await MobileAds.instance.initialize();
 
       // Unity Ads initialisation (testMode is controlled by kDebugMode inside)
@@ -32,8 +50,8 @@ class AppInitializer {
 
       // Pre-load first interstitial so it is ready when needed
       AdManager.instance.preloadAds();
+    } catch (e) {
+      debugPrint('Ad SDK init error: $e');
     }
-
-    await SoundService.init();
   }
 }

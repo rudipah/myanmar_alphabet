@@ -45,6 +45,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
   Future<void> _setupGame() async {
     try {
       final allFlashcards = await DataLoader.loadFlashcards();
+      if (!mounted) return;
       setState(() {
         matchesFound = 0;
         firstSelectedIdx = null;
@@ -113,6 +114,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
           firstCard.audio ?? '', firstCard.wordAudio ?? '');
 
       Future.delayed(const Duration(milliseconds: 600), () {
+        if (!mounted) return; // child may have left the screen
         setState(() {
           firstSelectedIdx = null;
           secondSelectedIdx = null;
@@ -122,6 +124,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
     } else {
       HapticFeedback.heavyImpact();
       Future.delayed(const Duration(milliseconds: 1000), () {
+        if (!mounted) return; // child may have left the screen
         setState(() {
           firstSelectedIdx = null;
           secondSelectedIdx = null;

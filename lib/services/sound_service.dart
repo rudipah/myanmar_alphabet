@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
 import 'preferences_service.dart';
@@ -9,7 +10,11 @@ class SoundService {
   static final Map<String, AudioSource> _audioCache = {};
 
   static bool _isInitialized = false;
-  static bool _isBusy = false;
+
+  /// Incremented on every play request. A request that is no longer the
+  /// newest one abandons itself, so the LATEST tap always wins instead of
+  /// taps being ignored while a clip is still playing.
+  static int _playToken = 0;
 
   /// Call this once at app startup.
   static Future<void> init() async {
@@ -43,17 +48,25 @@ class SoundService {
     }
   }
 
-  /// Play sound instantly using the cache.
-  static Future<void> playLetter(String audioFile) async {
-    if (_isBusy) return;
+  /// Play a letter sound. The newest call always wins (it interrupts any
+  /// clip that is playing).
+  ///
+  /// By default this returns as soon as playback has STARTED. Pass
+  /// [waitForCompletion] to get a Future that completes when the clip ends
+  /// (used by the tracing screen's speaker animation).
+  static Future<void> playLetter(String audioFile,
+      {bool waitForCompletion = false}) async {
     if (!await PreferencesService.isSoundEnabled()) return; // Muted
-    _isBusy = true;
+    final token = ++_playToken;
 
     try {
       await _player.stop();
-      final format = await PreferencesService.getAudioFormat();
-      String finalFile = audioFile;
+      if (token != _playToken) return;
 
+      final format = await PreferencesService.getAudioFormat();
+      if (token != _playToken) return;
+
+      String finalFile = audioFile;
       if (format == AudioFormat.long && !audioFile.contains('_long') && !audioFile.contains('_word')) {
         finalFile = audioFile.replaceAll('.ogg', '_long.ogg');
       }
@@ -61,40 +74,41 @@ class SoundService {
       final path = finalFile.startsWith('assets/audio/') ? finalFile : 'assets/audio/$finalFile';
 
       try {
-        await _setSourceAndPlay(path);
+        await _setSourceAndPlay(path, token, waitForCompletion);
       } catch (e) {
+        if (token != _playToken) return; // interrupted by a newer tap — not an error
         if (finalFile != audioFile) {
           debugPrint('⚠️ SoundService: Long version not found for $audioFile, falling back to short.');
           final fallbackPath = audioFile.startsWith('assets/audio/') ? audioFile : 'assets/audio/$audioFile';
-          await _setSourceAndPlay(fallbackPath);
+          await _setSourceAndPlay(fallbackPath, token, waitForCompletion);
         } else {
           rethrow;
         }
       }
     } catch (e) {
+      if (token != _playToken) return;
       debugPrint('❌ SoundService Playback Error for $audioFile: $e');
-    } finally {
-      _isBusy = false;
     }
   }
 
   /// Play letter followed by its corresponding word audio sequentially.
   static Future<void> playLetterAndWord(String letterAudio, String wordAudio) async {
-    if (_isBusy) return;
     if (!await PreferencesService.isSoundEnabled()) return; // Muted
-    _isBusy = true;
+    final token = ++_playToken;
 
     try {
-      await _playSequence([letterAudio, wordAudio]);
+      await _player.stop();
+      if (token != _playToken) return;
+      await _playSequence([letterAudio, wordAudio], token);
     } catch (e) {
+      if (token != _playToken) return;
       debugPrint('❌ SoundService Sequence Playback Error: $e');
-    } finally {
-      _isBusy = false;
     }
   }
 
-  static Future<void> _playSequence(List<String> files) async {
+  static Future<void> _playSequence(List<String> files, int token) async {
     for (var file in files) {
+      if (token != _playToken) return; // a newer sound took over
       if (file.isEmpty) continue;
 
       String finalFile = file;
@@ -106,18 +120,17 @@ class SoundService {
       final path = finalFile.startsWith('assets/audio/') ? finalFile : 'assets/audio/$finalFile';
 
       try {
-        await _setSourceAndPlay(path);
-        // Wait for the current audio to finish before starting the next one
-        await _player.playerStateStream.firstWhere(
-          (state) => state.processingState == ProcessingState.completed
-        ).timeout(const Duration(seconds: 5));
+        // Waits until this clip has finished before moving to the next one.
+        await _setSourceAndPlay(path, token, true);
       } catch (e) {
+        if (token != _playToken) return;
         debugPrint('⚠️ Sequence element $file failed or timed out: $e');
       }
     }
   }
 
-  static Future<void> _setSourceAndPlay(String path) async {
+  static Future<void> _setSourceAndPlay(
+      String path, int token, bool waitForCompletion) async {
     // Remove leading 'assets/' if we are on web because the engine adds it automatically
     String finalPath = path;
     if (kIsWeb && finalPath.startsWith('assets/')) {
@@ -131,7 +144,19 @@ class SoundService {
       await _player.setAsset(finalPath);
       _audioCache[finalPath] = AudioSource.asset(finalPath);
     }
-    await _player.play();
+
+    if (token != _playToken) return; // a newer tap took over while loading
+
+    // IMPORTANT: in just_audio, play()'s Future only completes when the clip
+    // FINISHES. Awaiting it here used to keep a "busy" lock held for the whole
+    // clip, so taps on the speaker buttons were silently ignored.
+    if (waitForCompletion) {
+      await _player.play();
+    } else {
+      unawaited(_player.play().catchError((Object e) {
+        debugPrint('⚠️ SoundService play error: $e');
+      }));
+    }
   }
 
   static Future<void> stop() async {

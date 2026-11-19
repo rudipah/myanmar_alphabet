@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../data/letters_data.dart';
 import '../data/data_loader.dart';
 import '../models/letter.dart';
 import 'tracing_screen.dart';
@@ -62,7 +61,8 @@ class _HomeScreenState extends State<HomeScreen>
           _numberLetters = numbers;
         });
         debugPrint(
-            'Loaded ${letters.length} letters and ${numbers.length} numbers from JSON');
+          'Loaded ${letters.length} letters and ${numbers.length} numbers from JSON',
+        );
       }
     } catch (e) {
       debugPrint('Data loading failed (using hardcoded data): $e');
@@ -76,53 +76,317 @@ class _HomeScreenState extends State<HomeScreen>
 
   // Hardcoded fallback data (used if JSON load fails or on web)
   static final List<MyanmarLetter> myanmarLetters = [
-    MyanmarLetter(character: 'က', name: 'ka', emoji: '🐱', colorValue: 0xFFFF6B6B, audioFile: 'ka.ogg'),
-    MyanmarLetter(character: 'ခ', name: 'kha', emoji: '🐶', colorValue: 0xFFFF9F43, audioFile: 'kha.ogg'),
-    MyanmarLetter(character: 'ဂ', name: 'ga', emoji: '🐸', colorValue: 0xFF54A0FF, audioFile: 'ga.ogg'),
-    MyanmarLetter(character: 'ဃ', name: 'gha', emoji: '🦋', colorValue: 0xFF5F27CD, audioFile: 'gha.ogg'),
-    MyanmarLetter(character: 'င', name: 'nga', emoji: '🐠', colorValue: 0xFF00D2D3, audioFile: 'nga.ogg'),
-    MyanmarLetter(character: 'စ', name: 'sa', emoji: '🌸', colorValue: 0xFFFF6B9D, audioFile: 'sa.ogg'),
-    MyanmarLetter(character: 'ဆ', name: 'hsa', emoji: '🐢', colorValue: 0xFF26DE81, audioFile: 'hsa.ogg'),
-    MyanmarLetter(character: 'ဇ', name: 'za', emoji: '🦊', colorValue: 0xFFFD9644, audioFile: 'za.ogg'),
-    MyanmarLetter(character: 'ဈ', name: 'za', emoji: '🦅', colorValue: 0xFFE17055, audioFile: 'zha.ogg'),
-    MyanmarLetter(character: 'ည', name: 'nya', emoji: '🌙', colorValue: AppColors.primaryValue, audioFile: 'nya.ogg'),
-    MyanmarLetter(character: 'ဋ', name: 'ta', emoji: '🐯', colorValue: 0xFFFF7675, audioFile: 'ta1.ogg'),
-    MyanmarLetter(character: 'ဌ', name: 'hta', emoji: '🦁', colorValue: 0xFFFDAB10, audioFile: 'hta1.ogg'),
-    MyanmarLetter(character: 'ဍ', name: 'da', emoji: '🐻', colorValue: 0xFF00CEC9, audioFile: 'da1.ogg'),
-    MyanmarLetter(character: 'ဎ', name: 'da', emoji: '🐼', colorValue: 0xFFA29BFE, audioFile: 'dha1.ogg'),
-    MyanmarLetter(character: 'ဏ', name: 'na', emoji: '🦒', colorValue: 0xFFFF4DA6, audioFile: 'na1.ogg'),
-    MyanmarLetter(character: 'တ', name: 'ta', emoji: '🐘', colorValue: 0xFF55EFC4, audioFile: 'ta2.ogg'),
-    MyanmarLetter(character: 'ထ', name: 'hta', emoji: '🦓', colorValue: 0xFFFF6348, audioFile: 'hta2.ogg'),
-    MyanmarLetter(character: 'ဒ', name: 'da', emoji: '🦏', colorValue: 0xFF7BED9F, audioFile: 'da2.ogg'),
-    MyanmarLetter(character: 'ဓ', name: 'da', emoji: '🐊', colorValue: 0xFF70A1FF, audioFile: 'dha2.ogg'),
-    MyanmarLetter(character: 'န', name: 'na', emoji: '🌻', colorValue: 0xFFFD79A8, audioFile: 'na2.ogg'),
-    MyanmarLetter(character: 'ပ', name: 'pa', emoji: '🦜', colorValue: AppColors.primaryValue, audioFile: 'pa.ogg'),
-    MyanmarLetter(character: 'ဖ', name: 'pha', emoji: '🦚', colorValue: 0xFFE84393, audioFile: 'pha.ogg'),
-    MyanmarLetter(character: 'ဗ', name: 'ba', emoji: '🦩', colorValue: 0xFF0984E3, audioFile: 'ba.ogg'),
-    MyanmarLetter(character: 'ဘ', name: 'ba', emoji: '🦋', colorValue: 0xFF00B894, audioFile: 'bha.ogg'),
-    MyanmarLetter(character: 'မ', name: 'ma', emoji: '🐵', colorValue: 0xFFA29BFE, audioFile: 'ma.ogg'),
-    MyanmarLetter(character: 'ယ', name: 'ya', emoji: '🌈', colorValue: 0xFF00B894, audioFile: 'ya.ogg'),
-    MyanmarLetter(character: 'ရ', name: 'ya', emoji: '🦊', colorValue: 0xFFFF4757, audioFile: 'ya1.ogg'),
-    MyanmarLetter(character: 'လ', name: 'la', emoji: '🌺', colorValue: 0xFF2ED573, audioFile: 'la.ogg'),
-    MyanmarLetter(character: 'ဝ', name: 'wa', emoji: '🐋', colorValue: 0xFF1E90FF, audioFile: 'wa.ogg'),
-    MyanmarLetter(character: 'သ', name: 'tha', emoji: '🌟', colorValue: 0xFFFFD32A, audioFile: 'tha.ogg'),
-    MyanmarLetter(character: 'ဟ', name: 'ha', emoji: '🦁', colorValue: 0xFFFF6B81, audioFile: 'ha.ogg'),
-    MyanmarLetter(character: 'ဠ', name: 'la', emoji: '🌴', colorValue: 0xFF3AE374, audioFile: 'lla.ogg'),
-    MyanmarLetter(character: 'အ', name: 'a', emoji: '⭐', colorValue: 0xFFECCC68, audioFile: 'a.ogg'),
+    MyanmarLetter(
+      character: 'က',
+      name: 'ka',
+      emoji: '🐱',
+      colorValue: 0xFFFF6B6B,
+      audioFile: 'ka.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ခ',
+      name: 'kha',
+      emoji: '🐶',
+      colorValue: 0xFFFF9F43,
+      audioFile: 'kha.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဂ',
+      name: 'ga',
+      emoji: '🐸',
+      colorValue: 0xFF54A0FF,
+      audioFile: 'ga.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဃ',
+      name: 'gha',
+      emoji: '🦋',
+      colorValue: 0xFF5F27CD,
+      audioFile: 'gha.ogg',
+    ),
+    MyanmarLetter(
+      character: 'င',
+      name: 'nga',
+      emoji: '🐠',
+      colorValue: 0xFF00D2D3,
+      audioFile: 'nga.ogg',
+    ),
+    MyanmarLetter(
+      character: 'စ',
+      name: 'sa',
+      emoji: '🌸',
+      colorValue: 0xFFFF6B9D,
+      audioFile: 'sa.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဆ',
+      name: 'hsa',
+      emoji: '🐢',
+      colorValue: 0xFF26DE81,
+      audioFile: 'hsa.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဇ',
+      name: 'za',
+      emoji: '🦊',
+      colorValue: 0xFFFD9644,
+      audioFile: 'za.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဈ',
+      name: 'za',
+      emoji: '🦅',
+      colorValue: 0xFFE17055,
+      audioFile: 'zha.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ည',
+      name: 'nya',
+      emoji: '🌙',
+      colorValue: AppColors.primaryValue,
+      audioFile: 'nya.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဋ',
+      name: 'ta',
+      emoji: '🐯',
+      colorValue: 0xFFFF7675,
+      audioFile: 'ta1.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဌ',
+      name: 'hta',
+      emoji: '🦁',
+      colorValue: 0xFFFDAB10,
+      audioFile: 'hta1.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဍ',
+      name: 'da',
+      emoji: '🐻',
+      colorValue: 0xFF00CEC9,
+      audioFile: 'da1.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဎ',
+      name: 'da',
+      emoji: '🐼',
+      colorValue: 0xFFA29BFE,
+      audioFile: 'dha1.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဏ',
+      name: 'na',
+      emoji: '🦒',
+      colorValue: 0xFFFF4DA6,
+      audioFile: 'na1.ogg',
+    ),
+    MyanmarLetter(
+      character: 'တ',
+      name: 'ta',
+      emoji: '🐘',
+      colorValue: 0xFF55EFC4,
+      audioFile: 'ta2.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ထ',
+      name: 'hta',
+      emoji: '🦓',
+      colorValue: 0xFFFF6348,
+      audioFile: 'hta2.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဒ',
+      name: 'da',
+      emoji: '🦏',
+      colorValue: 0xFF7BED9F,
+      audioFile: 'da2.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဓ',
+      name: 'da',
+      emoji: '🐊',
+      colorValue: 0xFF70A1FF,
+      audioFile: 'dha2.ogg',
+    ),
+    MyanmarLetter(
+      character: 'န',
+      name: 'na',
+      emoji: '🌻',
+      colorValue: 0xFFFD79A8,
+      audioFile: 'na2.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ပ',
+      name: 'pa',
+      emoji: '🦜',
+      colorValue: AppColors.primaryValue,
+      audioFile: 'pa.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဖ',
+      name: 'pha',
+      emoji: '🦚',
+      colorValue: 0xFFE84393,
+      audioFile: 'pha.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဗ',
+      name: 'ba',
+      emoji: '🦩',
+      colorValue: 0xFF0984E3,
+      audioFile: 'ba.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဘ',
+      name: 'ba',
+      emoji: '🦋',
+      colorValue: 0xFF00B894,
+      audioFile: 'bha.ogg',
+    ),
+    MyanmarLetter(
+      character: 'မ',
+      name: 'ma',
+      emoji: '🐵',
+      colorValue: 0xFFA29BFE,
+      audioFile: 'ma.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ယ',
+      name: 'ya',
+      emoji: '🌈',
+      colorValue: 0xFF00B894,
+      audioFile: 'ya.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ရ',
+      name: 'ya',
+      emoji: '🦊',
+      colorValue: 0xFFFF4757,
+      audioFile: 'ya1.ogg',
+    ),
+    MyanmarLetter(
+      character: 'လ',
+      name: 'la',
+      emoji: '🌺',
+      colorValue: 0xFF2ED573,
+      audioFile: 'la.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဝ',
+      name: 'wa',
+      emoji: '🐋',
+      colorValue: 0xFF1E90FF,
+      audioFile: 'wa.ogg',
+    ),
+    MyanmarLetter(
+      character: 'သ',
+      name: 'tha',
+      emoji: '🌟',
+      colorValue: 0xFFFFD32A,
+      audioFile: 'tha.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဟ',
+      name: 'ha',
+      emoji: '🦁',
+      colorValue: 0xFFFF6B81,
+      audioFile: 'ha.ogg',
+    ),
+    MyanmarLetter(
+      character: 'ဠ',
+      name: 'la',
+      emoji: '🌴',
+      colorValue: 0xFF3AE374,
+      audioFile: 'lla.ogg',
+    ),
+    MyanmarLetter(
+      character: 'အ',
+      name: 'a',
+      emoji: '⭐',
+      colorValue: 0xFFECCC68,
+      audioFile: 'a.ogg',
+    ),
   ];
 
   static const List<MyanmarLetter> myanmarNumbers = [
-    MyanmarLetter(character: '၀', name: 'zero', emoji: '🥚', colorValue: AppColors.primaryValue, audioFile: 'zero0.ogg'),
-    MyanmarLetter(character: '၁', name: 'one', emoji: '🌟', colorValue: 0xFFFF6B6B, audioFile: 'one.ogg'),
-    MyanmarLetter(character: '၂', name: 'two', emoji: '🍎', colorValue: 0xFFFF9F43, audioFile: 'two.ogg'),
-    MyanmarLetter(character: '၃', name: 'three', emoji: '🌸', colorValue: 0xFF26DE81, audioFile: 'three.ogg'),
-    MyanmarLetter(character: '၄', name: 'four', emoji: '🦋', colorValue: 0xFF54A0FF, audioFile: 'four.ogg'),
-    MyanmarLetter(character: '၅', name: 'five', emoji: '🐠', colorValue: 0xFFFF6B9D, audioFile: 'five.ogg'),
-    MyanmarLetter(character: '၆', name: 'six', emoji: '🐢', colorValue: 0xFF00D2D3, audioFile: 'six.ogg'),
-    MyanmarLetter(character: '၇', name: 'seven', emoji: '🌈', colorValue: 0xFFFD9644, audioFile: 'seven.ogg'),
-    MyanmarLetter(character: '၈', name: 'eight', emoji: '🐵', colorValue: 0xFFA29BFE, audioFile: 'eight.ogg'),
-    MyanmarLetter(character: '၉', name: 'nine', emoji: '🌻', colorValue: 0xFFE84393, audioFile: 'nine.ogg'),
-    MyanmarLetter(character: '၁၀', name: 'ten', emoji: '🎉', colorValue: 0xFF00B894, audioFile: 'ten.ogg'),
+    MyanmarLetter(
+      character: '၀',
+      name: 'zero',
+      emoji: '🥚',
+      colorValue: AppColors.primaryValue,
+      audioFile: 'zero0.ogg',
+    ),
+    MyanmarLetter(
+      character: '၁',
+      name: 'one',
+      emoji: '🌟',
+      colorValue: 0xFFFF6B6B,
+      audioFile: 'one.ogg',
+    ),
+    MyanmarLetter(
+      character: '၂',
+      name: 'two',
+      emoji: '🍎',
+      colorValue: 0xFFFF9F43,
+      audioFile: 'two.ogg',
+    ),
+    MyanmarLetter(
+      character: '၃',
+      name: 'three',
+      emoji: '🌸',
+      colorValue: 0xFF26DE81,
+      audioFile: 'three.ogg',
+    ),
+    MyanmarLetter(
+      character: '၄',
+      name: 'four',
+      emoji: '🦋',
+      colorValue: 0xFF54A0FF,
+      audioFile: 'four.ogg',
+    ),
+    MyanmarLetter(
+      character: '၅',
+      name: 'five',
+      emoji: '🐠',
+      colorValue: 0xFFFF6B9D,
+      audioFile: 'five.ogg',
+    ),
+    MyanmarLetter(
+      character: '၆',
+      name: 'six',
+      emoji: '🐢',
+      colorValue: 0xFF00D2D3,
+      audioFile: 'six.ogg',
+    ),
+    MyanmarLetter(
+      character: '၇',
+      name: 'seven',
+      emoji: '🌈',
+      colorValue: 0xFFFD9644,
+      audioFile: 'seven.ogg',
+    ),
+    MyanmarLetter(
+      character: '၈',
+      name: 'eight',
+      emoji: '🐵',
+      colorValue: 0xFFA29BFE,
+      audioFile: 'eight.ogg',
+    ),
+    MyanmarLetter(
+      character: '၉',
+      name: 'nine',
+      emoji: '🌻',
+      colorValue: 0xFFE84393,
+      audioFile: 'nine.ogg',
+    ),
+    MyanmarLetter(
+      character: '၁၀',
+      name: 'ten',
+      emoji: '🎉',
+      colorValue: 0xFF00B894,
+      audioFile: 'ten.ogg',
+    ),
   ];
 
   @override
@@ -245,10 +509,7 @@ class _LetterGrid extends StatelessWidget {
   final List<MyanmarLetter> items;
   final int crossAxisCount;
 
-  const _LetterGrid({
-    required this.items,
-    required this.crossAxisCount,
-  });
+  const _LetterGrid({required this.items, required this.crossAxisCount});
 
   @override
   Widget build(BuildContext context) {
@@ -304,46 +565,6 @@ class _LetterGrid extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class TracingScreenWithNav extends StatefulWidget {
-  final List<MyanmarLetter> items;
-  final int startIndex;
-
-  const TracingScreenWithNav({
-    super.key,
-    required this.items,
-    required this.startIndex,
-  });
-
-  @override
-  State<TracingScreenWithNav> createState() => _TracingScreenWithNavState();
-}
-
-class _TracingScreenWithNavState extends State<TracingScreenWithNav> {
-  late int _currentIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentIndex = widget.startIndex;
-  }
-
-  void _nextLetter() {
-    if (_currentIndex < widget.items.length - 1) {
-      setState(() => _currentIndex++);
-    } else {
-      Navigator.pop(context);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TracingScreen(
-      letter: widget.items[_currentIndex],
-      onNext: _nextLetter,
     );
   }
 }

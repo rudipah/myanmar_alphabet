@@ -2,6 +2,13 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
+/// Master switch for real backdrop blur. The mesh background behind the glass
+/// is a smooth gradient, so blurring it changes nothing visible — but each
+/// BackdropFilter costs a full-screen re-blur every frame (and a saveLayer
+/// during fade/scale transitions), which made screens like Flashcards janky.
+/// Set to true only if you put detailed content (images, text) BEHIND glass.
+const bool kGlassBackdropBlur = false;
+
 /// The core "liquid glass" surface:
 ///   translucent white fill + 1px light border + soft top specular highlight,
 ///   optionally with a real backdrop blur.
@@ -134,7 +141,7 @@ class GlassContainer extends StatelessWidget {
       child: content,
     );
 
-    if (blur > 0) {
+    if (kGlassBackdropBlur && blur > 0) {
       glass = BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
         child: glass,
