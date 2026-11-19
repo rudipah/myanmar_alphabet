@@ -1,6 +1,6 @@
 # Myanmar Alphabet — Project Handoff & Update Log
 
-> **Status:** Reflects the code in `lib.zip` as of 18 Nov 2026 (after §3A ad/streak/cleanup, §3B liquid glass UI, §3C menu simplification, §3D flashcard fixes, §3E flashcard banner, §3F review fixes, §3G manifest/pubspec review, §3H privacy policy review, §3I duplicate class + deprecations, §3J analyzer clean-up + code-vs-handoff check, §3K–§3L website/icon, §3M website phone mock-up). Where this file and the code disagree, the code wins.
+> **Status:** Reflects the code in `lib.zip` as of 18 Nov 2026 (after §3A ad/streak/cleanup, §3B liquid glass UI, §3C menu simplification, §3D flashcard fixes, §3E flashcard banner, §3F review fixes, §3G manifest/pubspec review, §3H privacy policy review, §3I duplicate class + deprecations, §3J analyzer clean-up + code-vs-handoff check, §3K–§3L website/icon, §3M website phone mock-up, §3N project documentation + UML review). Where this file and the code disagree, the code wins.
 >
 > **Purpose:** This document is written for any AI agent or developer continuing work on this project.
 > It captures the full current state, what was recently changed and why, what still needs doing,
@@ -622,6 +622,31 @@ The developer asked for a phone screen on the website that looks like the app's 
 
 ---
 
+## 3N. Project documentation (.docx) refresh + UML review (19 Nov 2026)
+
+Documentation only — **no app code, `pubspec.yaml` or website files changed.**
+
+### `learn_myanmar_alphabet_docs_v1_1.docx` → `learn_myanmar_alphabet_docs_v1_2.docx`
+- The v1.1 doc still described the original v1.0.0 app (tracing only, Android + iOS, MP3 audio, one banner on the tracing screen). It was rebuilt in the same styles to match this handoff (version 1.0.3+4, iOS only). The Myanmar content tables (§4.2 of the doc) were kept unchanged.
+- **Updated:** cover and overview; all screens (menu, letter grid, tracing, flashcards, quiz, matching, progress, settings); liquid-glass UI; `.ogg` short/long audio; layered, startup/ad-flow and file-tree diagrams; non-functional requirements; external integrations with resolved versions; technical stack.
+- **New doc sections:** 1.7 Advertising & Child-Directed Compliance, 1.8 Data Persistence, 3.7 Developer Website & Hosting, 6.1 pre-release manual actions (from §4.1 here), 6.5 backlog (from §4.3 here), 6.6 Known Limitations, and 7 Revision History.
+- **Removed:** Google Play content (short description, tags, `.aab` steps, Android screenshot sizes), the "44 MP3 files" claim, and backlog items that already exist (quiz, progress tracking, saved progress).
+- **Store text in the doc is a draft, not live copy:** the App Store subtitle, keywords, screenshot sizes and minimum iOS version are carried over from v1.0.0 and marked "confirm in App Store Connect". The full description and promotional text are a *suggested* rewrite — review before submitting. Home-grid tab/column details and tracing stroke width/opacity were not re-verified against code.
+- The doc must be refreshed again if the menu changes, the streak badge returns, or the icon/website change.
+
+### UML class diagram
+- A class diagram of the current structure was drawn inline in the chat (Mermaid; **not saved as a file**). It covers: the menu and activity screens, `SoundService`, `PreferencesService`, `TracingValidator`, `AdManager`, `UnityAdsService`, `AdHelper`, `AppInitializer`, `DataLoader`, `MyanmarLetter`, `Flashcard`, `BannerAdWidget`, `TracingCanvas`. Members shown are only those named in this handoff.
+- The developer's existing `UML_Diagram.png` (a tracing-only slice, matches the v1.0.0 design) was checked against this handoff. **Do not reuse it as-is.** Findings:
+  - `HomeScreen` opens `TracingScreenWithNav` (which wraps `TracingScreen`), not `TracingScreen` directly (§3I).
+  - `SoundService` now has `playLetter(file, {waitForCompletion})`, `playLetterAndWord()`, `stop()`, and is mute-aware (§3D, §3J).
+  - `TracingScreen._onDone` validates with `TracingValidator` and calls `PreferencesService.recordStudyActivity()` — both missing from the PNG (§3A.3, §3F).
+  - `BannerAd` should be `BannerAdWidget` (adaptive, wraps AdMob's `BannerAd`, handles load/dispose itself) (§3.2, §3F).
+  - Notation: Dart `_`-prefixed members are private (`-`), not `+`; `TracingCanvas` is composition, not a plain arrow; "uses" / "navigates" are dependencies (dashed).
+  - Missing entirely: `MenuScreen`, Flashcards, Quiz, Matching, Progress, Settings, `PreferencesService`, `AdManager`, `UnityAdsService`, `DataLoader`, `Flashcard`, glass widgets.
+- **Open:** the developer was offered an updated PlantUML version (full diagram, or tracing slice + overview); not yet chosen. Check private field names and the `colorValue` type against the code before drawing it.
+
+---
+
 ## 4. What Still Needs Doing
 
 ### 4.1 ⚠️ Before the next iOS release — manual actions only the developer can do
@@ -758,4 +783,4 @@ flutter build ipa --release
 
 ---
 
-*Last updated: 19 November 2026 — includes everything up to §3M (website phone mock-up).*
+*Last updated: 19 November 2026 — includes everything up to §3N (documentation refresh + UML review).*
