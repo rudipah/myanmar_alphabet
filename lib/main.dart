@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/menu_screen.dart';
-import 'services/sound_service.dart';
 import 'services/app_initializer.dart';
 import 'data/data_loader.dart';
-import 'models/letter.dart';
-import 'models/flashcard.dart';
 import 'utils/app_colors.dart';
 
 Future<void> main() async {
@@ -19,26 +14,19 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Initialize ads
-  if (!kIsWeb) {
-    try {
-      await MobileAds.instance.initialize();
-    } catch (e) {
-      debugPrint("AdMob initialization failed: $e");
-    }
-  }
+  // All initialisation (AdMob, Unity Ads, Sound) is done in one place
   try {
     await AppInitializer.init();
   } catch (e) {
-    debugPrint("Init error: $e");
+    debugPrint('Init error: $e');
   }
 
-  // Load data from JSON assets
+  // Load letter / number / flashcard data from JSON assets
   try {
     await DataLoader.init();
-    debugPrint("Data loaded from JSON successfully!");
+    debugPrint('Data loaded from JSON successfully!');
   } catch (e) {
-    debugPrint("DataLoader init error (using fallback): $e");
+    debugPrint('DataLoader init error (using fallback): $e');
   }
 
   runApp(const MyanmarAlphabetApp());
@@ -52,12 +40,6 @@ class MyanmarAlphabetApp extends StatelessWidget {
     return MaterialApp(
       title: 'Learn Myanmar Alphabet',
       debugShowCheckedModeBanner: false,
-      // theme: ThemeData(
-      //   useMaterial3: true,
-      //   colorScheme: ColorScheme.fromSeed(
-      //     seedColor: const Color(0xFF6C5CE7),
-      //   ),
-      // ),
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(

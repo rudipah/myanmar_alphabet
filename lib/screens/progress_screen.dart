@@ -3,6 +3,11 @@ import '../models/letter.dart';
 import '../data/data_loader.dart';
 import '../utils/app_colors.dart';
 import '../services/preferences_service.dart';
+import '../widgets/banner_ad_widget.dart';
+import '../widgets/nav_icon_button.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/glass_progress_bar.dart';
+import '../widgets/mesh_background.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -29,26 +34,29 @@ class _ProgressScreenState extends State<ProgressScreen> {
       final numbers = await DataLoader.loadNumbers();
       final progress = await PreferencesService.getLetterProgress();
 
-      setState(() {
-        _consonants = letters;
-        _numbers = numbers;
-        _letterProgress = progress;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _consonants = letters;
+          _numbers = numbers;
+          _letterProgress = progress;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading progress data: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   double get _progressPercentage {
-    final allLetters = [..._consonants, ..._numbers];
-    if (allLetters.isEmpty) return 0.0;
-    final masteredCount = _letterProgress.entries.where((e) => e.value > 0).length;
-    return masteredCount / allLetters.length;
+    final total = _consonants.length + _numbers.length;
+    if (total == 0) return 0.0;
+    final practiced = _letterProgress.entries.where((e) => e.value > 0).length;
+    return practiced / total;
   }
+
+  int get _practicedCount =>
+      _letterProgress.entries.where((e) => e.value > 0).length;
 
   Widget _buildSection(String title, List<MyanmarLetter> letters) {
     if (letters.isEmpty) return const SizedBox.shrink();
@@ -61,7 +69,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2D2D4E),
+            color: AppColors.onGlass,
           ),
         ),
         const SizedBox(height: 16),
@@ -77,8 +85,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
           itemBuilder: (context, index) {
             final card = letters[index];
             final count = _letterProgress[card.character] ?? 0;
+            final isPracticed = count > 0;
 
-            Color tierColor;
+            // Tier colours chosen to glow on the dark glass background.
+            Color tierColor = Colors.white;
             int starCount = 0;
 
             if (count == 0) {
@@ -87,62 +97,56 @@ class _ProgressScreenState extends State<ProgressScreen> {
               tierColor = Colors.orangeAccent;
               starCount = 1;
             } else if (count < 8) {
-              tierColor = Colors.grey;
+              tierColor = const Color(0xFFCBD5E1); // silver
               starCount = 2;
             } else {
-              tierColor = AppColors.primary;
+              tierColor = const Color(0xFFB4A7FF); // bright lilac
               starCount = 3;
             }
 
-            final isPracticed = count > 0;
-
-            return Container(
-              decoration: BoxDecoration(
-                color: isPracticed ? tierColor.withValues(alpha: 0.2) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isPracticed ? tierColor : Colors.grey[300]!,
-                  width: isPracticed ? 2 : 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (isPracticed)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(
-                            starCount,
-                            (i) => Icon(
-                              Icons.star,
-                              size: 10,
-                              color: tierColor,
-                            ),
-                          ),
+            return GlassContainer(
+              borderRadius: 12,
+              blur: 0,
+              fillOpacity: 0.08,
+              tint: isPracticed ? tierColor.withValues(alpha: 0.2) : null,
+              borderColor: isPracticed
+                  ? tierColor.withValues(alpha: 0.65)
+                  : AppColors.white(0.15),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isPracticed)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(
+                          starCount,
+                          (i) => Icon(Icons.star, size: 10, color: tierColor),
                         ),
                       ),
-                    Text(
-                      card.character,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Pyidaungsu',
-                        color: isPracticed ? tierColor : const Color(0xFF2D2D4E),
-                      ),
                     ),
-                  ],
-                ),
+                  Text(
+                    card.character,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Pyidaungsu',
+                      color: isPracticed
+                          ? AppColors.onGlass
+                          : AppColors.white(0.75),
+                      shadows: isPracticed
+                          ? [
+                              Shadow(
+                                  color: tierColor.withValues(alpha: 0.8),
+                                  blurRadius: 12),
+                            ]
+                          : null,
+                    ),
+                  ),
+                ],
               ),
             );
           },
@@ -154,30 +158,31 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0EEFF),
+    return GlassScaffold(
+      bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white))
               : ListView(
                   children: [
                     // ---- Header ----
                     Row(
                       children: [
-                        _buildNavButton(
-                          Icons.arrow_back_ios_rounded,
-                          () => Navigator.pop(context),
+                        NavIconButton(
+                          icon: Icons.arrow_back_ios_rounded,
+                          onPressed: () => Navigator.pop(context),
                         ),
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: const Text(
-                            "My Progress",
+                        const Expanded(
+                          child: Text(
+                            'My Progress',
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF2D2D4E),
+                              color: AppColors.onGlass,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -186,60 +191,35 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ),
                     const SizedBox(height: 30),
 
-                    // ---- Progress bar ----
+                    // ---- Progress Bar ----
                     const Text(
-                      "Learning Progress",
+                      'Learning Progress',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D2D4E),
+                        color: AppColors.onGlass,
                       ),
                     ),
                     const SizedBox(height: 10),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: _progressPercentage,
-                        backgroundColor: Colors.white,
-                        color: AppColors.primary,
-                        minHeight: 12,
-                      ),
-                    ),
+                    GlassProgressBar(value: _progressPercentage, height: 12),
                     const SizedBox(height: 8),
                     Text(
-                      "${(_progressPercentage * 100).toInt()}% Completed (${_letterProgress.entries.where((e) => e.value > 0).length}/${_consonants.length + _numbers.length} letters)",
-                      style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                      '${(_progressPercentage * 100).toInt()}% Completed  '
+                      '($_practicedCount/${_consonants.length + _numbers.length} letters)',
+                      style: TextStyle(
+                          color: AppColors.white(0.6),
+                          fontWeight: FontWeight.w500),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
                     const SizedBox(height: 32),
 
                     // ---- Sections ----
-                    _buildSection("Consonants", _consonants),
-                    _buildSection("Numbers", _numbers),
+                    _buildSection('Consonants', _consonants),
+                    _buildSection('Numbers', _numbers),
                   ],
                 ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavButton(IconData icon, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(icon, size: 32, color: AppColors.primary),
-        onPressed: onPressed,
       ),
     );
   }

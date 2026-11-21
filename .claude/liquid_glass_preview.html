@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Myanmar Alphabet — Liquid Glass UI Preview</title>
+<style>
+  :root {
+    --bg1: #3b1f8c;
+    --bg2: #6c2fa0;
+    --bg3: #c2185b;
+    --bg4: #1565c0;
+    --bg5: #00838f;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0d0d1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 48px;
+    overflow-x: hidden;
+  }
+
+  /* Animated mesh gradient background behind phone */
+  .bg-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse at 20% 20%, #4a1fa8 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 10%, #1a3a8c 0%, transparent 45%),
+                radial-gradient(ellipse at 60% 80%, #8b1a6b 0%, transparent 50%),
+                radial-gradient(ellipse at 10% 80%, #0d5c8a 0%, transparent 45%),
+                radial-gradient(ellipse at 90% 60%, #1b6e5f 0%, transparent 40%),
+                #0d0d1a;
+    animation: meshShift 12s ease-in-out infinite alternate;
+  }
+  @keyframes meshShift {
+    0%   { filter: hue-rotate(0deg) brightness(1); }
+    50%  { filter: hue-rotate(15deg) brightness(1.1); }
+    100% { filter: hue-rotate(-10deg) brightness(0.95); }
+  }
+
+  h1 {
+    color: rgba(255,255,255,0.9);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-align: center;
+    margin-bottom: 6px;
+    position: relative; z-index: 10;
+  }
+  .subtitle {
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 28px;
+    position: relative; z-index: 10;
+  }
+
+  /* Tab bar */
+  .tab-bar {
+    display: flex; gap: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 5px;
+    margin-bottom: 24px;
+    position: relative; z-index: 10;
+  }
+  .tab {
+    padding: 7px 14px;
+    border-radius: 15px;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: none; background: none;
+    white-space: nowrap;
+  }
+  .tab.active {
+    background: rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.95);
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+
+  /* Phone frame */
+  .phone {
+    position: relative; z-index: 10;
+    width: 320px;
+    min-height: 620px;
+    border-radius: 40px;
+    border: 2px solid rgba(255,255,255,0.18);
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.3),
+      0 30px 80px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+
+  /* Phone interior gradient */
+  .phone-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 25% 15%, #5c2fa8 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 70%, #8b1a6b 0%, transparent 50%),
+                radial-gradient(ellipse at 10% 85%, #0d5c9a 0%, transparent 45%),
+                radial-gradient(ellipse at 75% 20%, #1b6e8f 0%, transparent 40%),
+                #150d2e;
+    animation: phoneBg 10s ease-in-out infinite alternate;
+  }
+  @keyframes phoneBg {
+    0%   { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(20deg); }
+  }
+
+  /* Status bar */
+  .status-bar {
+    position: relative; z-index: 5;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 24px 8px;
+    color: rgba(255,255,255,0.8);
+    font-size: 12px; font-weight: 600;
+  }
+  .status-bar .notch {
+    width: 90px; height: 22px;
+    background: #0a0a14;
+    border-radius: 0 0 14px 14px;
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  }
+
+  /* Glass utility */
+  .glass {
+    background: rgba(255,255,255,0.10);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.20);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .glass::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%);
+    border-radius: 20px 20px 0 0;
+    pointer-events: none;
+  }
+
+  .glass-sm {
+    background: rgba(255,255,255,0.10);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 14px;
+    position: relative; overflow: hidden;
+  }
+  .glass-sm::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, transparent 100%);
+    border-radius: 14px 14px 0 0;
+    pointer-events: none;
+  }
+
+  .glass-pill {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 24px;
+    position: relative; overflow: hidden;
+  }
+
+  /* ===== SCREEN: MENU ===== */
+  .screen { display: none; padding: 0 16px 16px; position: relative; z-index: 2; }
+  .screen.active { display: block; }
+
+  .menu-top-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0 14px;
+  }
+
+  .streak-pill {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 12px;
+    color: rgba(255,255,255,0.9);
+    font-size: 13px; font-weight: 600;
+  }
+
+  .app-icon-wrap {
+    display: flex; justify-content: center;
+    padding: 10px 0 14px;
+  }
+  .app-icon {
+    width: 90px; height: 90px;
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 52px;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 8px 32px rgba(0,0,0,0.3);
+    position: relative; overflow: hidden;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .app-icon::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 55%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 100%);
+    border-radius: 24px 24px 0 0;
+  }
+
+  .lotd-card {
+    margin: 0 0 14px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+  }
+  .lotd-letter {
+    font-size: 36px;
+    line-height: 1;
+    font-family: 'Pyidaungsu', serif;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 2px 12px rgba(255,255,255,0.3);
+  }
+  .lotd-info { flex: 1; }
+  .lotd-label { color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+  .lotd-name { color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 700; margin-top: 2px; }
+  .sound-icon { color: rgba(255,255,255,0.6); font-size: 18px; }
+
+  .app-title {
+    color: rgba(255,255,255,0.95);
+    font-size: 22px; font-weight: 800;
+    text-align: center;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    margin-bottom: 4px;
+    padding: 0 4px;
+  }
+  .app-tagline {
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 18px;
+  }
+
+  .start-btn {
+    width: 100%; padding: 15px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    color: rgba(255,255,255,0.95);
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; border: none;
+    margin-bottom: 14px;
+    background: rgba(108, 92, 231, 0.55);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(180,160,255,0.35);
+    border-radius: 20px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 4px 20px rgba(108,92,231,0.3);
+    position: relative; overflow: hidden;
+  }
+  .start-btn::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+    border-radius: 20px 20px 0 0;
+  }
+
+  .menu-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 10px;
+  }
+  .menu-tile {
+    padding: 14px 12px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    cursor: pointer;
+  }
+  .menu-tile-icon { font-size: 22px; }
+  .menu-tile-label { color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 600; }
+
+  /* ===== SCREEN: FLASHCARD ===== */
+  .screen-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0 16px;
+  }
+  .back-btn {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.9);
+    font-size: 16px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .screen-title {
+    color: rgba(255,255,255,0.95);
+    font-size: 20px; font-weight: 800;
+    flex: 1;
+  }
+  .counter-pill {
+    padding: 4px 10px;
+    color: rgba(255,255,255,0.7);
+    font-size: 12px; font-weight: 600;
+  }
+
+  .progress-track {
+    height: 5px; border-radius: 3px; overflow: hidden;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 18px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(170,140,255,0.9), rgba(255,160,210,0.9));
+    border-radius: 3px;
+  }
+
+  .flashcard {
+    width: 100%; aspect-ratio: 3/2.2;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.09);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 24px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 40px rgba(0,0,0,0.3);
+    position: relative; overflow: hidden;
+  }
+  .flashcard::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 55%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.14) 0%, transparent 100%);
+    border-radius: 24px 24px 0 0;
+  }
+  .flashcard-letter {
+    font-size: 90px; line-height: 1;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 4px 24px rgba(255,255,255,0.2);
+    position: relative; z-index: 1;
+  }
+  .hint-row {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    color: rgba(255,255,255,0.4); font-size: 11px;
+    margin-bottom: 16px;
+  }
+  .nav-row {
+    display: flex; justify-content: center; gap: 32px;
+    padding-bottom: 8px;
+  }
+  .nav-btn {
+    width: 50px; height: 50px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.9);
+    font-size: 18px; cursor: pointer;
+    background: rgba(255,255,255,0.11);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 16px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+
+  /* ===== SCREEN: QUIZ ===== */
+  .quiz-question-card {
+    width: 100%; aspect-ratio: 1/0.75;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 14px;
+    background: rgba(255,255,255,0.09);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 24px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 8px 40px rgba(0,0,0,0.3);
+    position: relative; overflow: hidden;
+  }
+  .quiz-question-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 55%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.13) 0%, transparent 100%);
+    border-radius: 24px 24px 0 0;
+  }
+  .quiz-letter {
+    font-size: 80px; line-height: 1;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 4px 24px rgba(255,255,255,0.2);
+    position: relative; z-index: 1;
+  }
+  .quiz-prompt {
+    color: rgba(255,255,255,0.55); font-size: 13px;
+    position: relative; z-index: 1;
+  }
+  .options-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .option-tile {
+    height: 68px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.9); font-size: 32px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.09);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 18px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
+    position: relative; overflow: hidden;
+    transition: all 0.2s;
+  }
+  .option-tile::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 48%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, transparent 100%);
+    border-radius: 18px 18px 0 0;
+  }
+  .option-tile.correct {
+    background: rgba(52, 211, 153, 0.25);
+    border-color: rgba(52, 211, 153, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 20px rgba(52,211,153,0.2);
+  }
+  .option-tile.wrong {
+    background: rgba(248, 113, 113, 0.22);
+    border-color: rgba(248, 113, 113, 0.45);
+  }
+
+  /* ===== SCREEN: HOME (letter grid) ===== */
+  .tab-toggle {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px; padding: 4px;
+    margin-bottom: 14px;
+  }
+  .toggle-btn {
+    flex: 1; padding: 8px 4px;
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 12px; font-weight: 600;
+    border-radius: 12px; cursor: pointer;
+    transition: all 0.2s;
+    border: none; background: none;
+  }
+  .toggle-btn.active {
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.95);
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .letter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .letter-cell {
+    aspect-ratio: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.09);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+    position: relative; overflow: hidden;
+    transition: transform 0.15s;
+  }
+  .letter-cell::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.09) 0%, transparent 100%);
+    border-radius: 16px 16px 0 0;
+  }
+  .letter-cell:active { transform: scale(0.94); }
+  .cell-char {
+    font-size: 24px; line-height: 1;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 2px 10px rgba(255,255,255,0.15);
+    position: relative; z-index: 1;
+  }
+  .cell-name {
+    font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600;
+    position: relative; z-index: 1;
+  }
+
+  /* Banner ad area */
+  .banner-ad-slot {
+    margin-top: 12px;
+    height: 42px;
+    background: rgba(255,255,255,0.05);
+    border: 1px dashed rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.25); font-size: 11px;
+  }
+
+  /* Info panel below phone */
+  .info-wrap {
+    position: relative; z-index: 10;
+    width: 320px; margin-top: 28px;
+  }
+  .info-card {
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+  }
+  .info-title {
+    color: rgba(255,255,255,0.8);
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.3px;
+    margin-bottom: 10px;
+  }
+  .change-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .change-row:last-child { border-bottom: none; }
+  .change-file {
+    color: rgba(180, 220, 255, 0.85);
+    font-family: monospace;
+    font-size: 11px;
+  }
+  .change-desc {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    text-align: right;
+    max-width: 55%;
+    line-height: 1.4;
+  }
+  .new-badge {
+    display: inline-block;
+    background: rgba(108,92,231,0.4);
+    border: 1px solid rgba(180,160,255,0.35);
+    color: rgba(200,185,255,0.9);
+    font-size: 9px; font-weight: 700;
+    padding: 1px 5px; border-radius: 4px;
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="bg-canvas"></div>
+
+<h1>Liquid Glass UI — Preview</h1>
+<p class="subtitle">Myanmar Alphabet App &nbsp;·&nbsp; Tap a screen to explore</p>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab active" onclick="showScreen('menu')" role="tab">Menu</button>
+  <button class="tab" onclick="showScreen('flashcard')" role="tab">Flashcard</button>
+  <button class="tab" onclick="showScreen('quiz')" role="tab">Quiz</button>
+  <button class="tab" onclick="showScreen('home')" role="tab">Letters</button>
+</div>
+
+<div class="phone" role="main">
+  <div class="phone-bg"></div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="notch"></div>
+    <span style="z-index:2;position:relative">9:41</span>
+    <span style="z-index:2;position:relative;opacity:0">.</span>
+    <span style="z-index:2;position:relative">●●●</span>
+  </div>
+
+  <!-- MENU SCREEN -->
+  <div class="screen active" id="screen-menu">
+    <div class="menu-top-row">
+      <div class="glass-pill streak-pill">🔥 <span>5 days</span></div>
+      <div class="glass-pill" style="padding:8px 10px;cursor:pointer;color:rgba(255,255,255,0.8);font-size:16px;">🔊</div>
+    </div>
+
+    <div class="app-icon-wrap">
+      <div class="app-icon">က</div>
+    </div>
+
+    <div class="glass lotd-card">
+      <div class="lotd-letter">က</div>
+      <div class="lotd-info">
+        <div class="lotd-label">🌟 Letter of the day</div>
+        <div class="lotd-name">Ka — Today's letter</div>
+      </div>
+      <div class="sound-icon">🔊</div>
+    </div>
+
+    <div class="app-title">Learn Myanmar Alphabet</div>
+    <div class="app-tagline">Tap start to begin learning</div>
+
+    <button class="start-btn">✏️ &nbsp; Start Learning</button>
+
+    <div class="menu-grid">
+      <div class="glass menu-tile">
+        <div class="menu-tile-icon">📚</div>
+        <div class="menu-tile-label">Flashcards</div>
+      </div>
+      <div class="glass menu-tile">
+        <div class="menu-tile-icon">🎯</div>
+        <div class="menu-tile-label">Quiz Time</div>
+      </div>
+      <div class="glass menu-tile">
+        <div class="menu-tile-icon">🧩</div>
+        <div class="menu-tile-label">Matching</div>
+      </div>
+      <div class="glass menu-tile">
+        <div class="menu-tile-icon">📊</div>
+        <div class="menu-tile-label">Progress</div>
+      </div>
+    </div>
+
+    <div class="glass" style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;">
+      <span style="font-size:18px;">⚙️</span>
+      <span style="color:rgba(255,255,255,0.85);font-size:14px;font-weight:600;">Settings</span>
+    </div>
+
+    <div class="banner-ad-slot">Ad banner</div>
+  </div>
+
+  <!-- FLASHCARD SCREEN -->
+  <div class="screen" id="screen-flashcard">
+    <div class="screen-header">
+      <div class="glass-sm back-btn">‹</div>
+      <div class="screen-title">Flashcards</div>
+      <div class="glass-pill counter-pill">7 / 33</div>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" style="width:21%"></div>
+    </div>
+
+    <div class="flashcard">
+      <span class="flashcard-letter">ဆ</span>
+    </div>
+
+    <div class="hint-row">
+      <span>👆</span>
+      <span>Tap to flip &nbsp;•&nbsp; Swipe to navigate</span>
+    </div>
+
+    <div class="nav-row">
+      <div class="nav-btn">‹</div>
+      <div class="nav-btn">›</div>
+    </div>
+    <div class="banner-ad-slot" style="margin-top:16px;">Ad banner</div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="screen" id="screen-quiz">
+    <div class="screen-header">
+      <div class="glass-sm back-btn">‹</div>
+      <div class="screen-title">Alphabet Quiz</div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <div style="color:rgba(255,255,255,0.5);font-size:12px;white-space:nowrap;">Q 4 / 10</div>
+      <div class="progress-track" style="flex:1;margin-bottom:0;">
+        <div class="progress-fill" style="width:40%"></div>
+      </div>
+      <div class="glass-pill" style="padding:4px 10px;font-size:11px;color:rgba(255,255,255,0.7);">Visual</div>
+    </div>
+
+    <div class="quiz-question-card">
+      <span class="quiz-letter">မ</span>
+      <span class="quiz-prompt">Which letter is this?</span>
+    </div>
+
+    <div class="options-grid">
+      <div class="option-tile">ပ</div>
+      <div class="option-tile correct">မ</div>
+      <div class="option-tile wrong">ဟ</div>
+      <div class="option-tile">န</div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <div class="start-btn" style="margin-bottom:0;padding:12px;">Next Question &nbsp;→</div>
+    </div>
+    <div class="banner-ad-slot">Ad banner</div>
+  </div>
+
+  <!-- HOME / LETTERS SCREEN -->
+  <div class="screen" id="screen-home">
+    <div class="screen-header">
+      <div class="glass-sm back-btn">‹</div>
+      <div class="screen-title">Learn Letters</div>
+    </div>
+
+    <div class="tab-toggle">
+      <button class="toggle-btn active">🔤 Consonants</button>
+      <button class="toggle-btn">🔢 Numbers</button>
+    </div>
+
+    <div class="letter-grid">
+      <div class="letter-cell"><span class="cell-char">က</span><span class="cell-name">ka</span></div>
+      <div class="letter-cell"><span class="cell-char">ခ</span><span class="cell-name">kha</span></div>
+      <div class="letter-cell"><span class="cell-char">ဂ</span><span class="cell-name">ga</span></div>
+      <div class="letter-cell"><span class="cell-char">ဃ</span><span class="cell-name">gha</span></div>
+      <div class="letter-cell"><span class="cell-char">င</span><span class="cell-name">nga</span></div>
+      <div class="letter-cell"><span class="cell-char">စ</span><span class="cell-name">sa</span></div>
+      <div class="letter-cell"><span class="cell-char">ဆ</span><span class="cell-name">hsa</span></div>
+      <div class="letter-cell"><span class="cell-char">ဇ</span><span class="cell-name">za</span></div>
+      <div class="letter-cell"><span class="cell-char">ည</span><span class="cell-name">nya</span></div>
+      <div class="letter-cell"><span class="cell-char">တ</span><span class="cell-name">ta</span></div>
+      <div class="letter-cell"><span class="cell-char">ထ</span><span class="cell-name">hta</span></div>
+      <div class="letter-cell"><span class="cell-char">ဒ</span><span class="cell-name">da</span></div>
+      <div class="letter-cell"><span class="cell-char">န</span><span class="cell-name">na</span></div>
+      <div class="letter-cell"><span class="cell-char">ပ</span><span class="cell-name">pa</span></div>
+      <div class="letter-cell"><span class="cell-char">မ</span><span class="cell-name">ma</span></div>
+      <div class="letter-cell" style="background:rgba(108,92,231,0.18);border-color:rgba(180,160,255,0.3)"><span class="cell-char" style="text-shadow:0 0 16px rgba(200,180,255,0.6)">ယ</span><span class="cell-name" style="color:rgba(200,185,255,0.8)">ya</span></div>
+    </div>
+    <div class="banner-ad-slot" style="margin-top:14px;">Ad banner</div>
+  </div>
+</div>
+
+<!-- Implementation notes -->
+<div class="info-wrap">
+  <div class="info-card">
+    <div class="info-title">Files to create / update</div>
+    <div class="change-row">
+      <span class="change-file"><span class="new-badge">NEW</span>glass_container.dart</span>
+      <span class="change-desc">Core glass widget — BackdropFilter + specular</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file"><span class="new-badge">NEW</span>mesh_background.dart</span>
+      <span class="change-desc">Animated gradient background widget</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">app_colors.dart</span>
+      <span class="change-desc">Add glass opacity + tint constants</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">menu_screen.dart</span>
+      <span class="change-desc">Tiles → GlassContainer, wrap Scaffold</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">flashcard_screen.dart</span>
+      <span class="change-desc">Card → GlassContainer</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">quiz_screen.dart</span>
+      <span class="change-desc">Options + question card → glass</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">home_screen.dart</span>
+      <span class="change-desc">Letter cells → glass tiles</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">nav_icon_button.dart</span>
+      <span class="change-desc">White card → glass pill</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">settings_screen.dart</span>
+      <span class="change-desc">Card list items → glass tiles</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">progress_screen.dart</span>
+      <span class="change-desc">Letter cells → glass with star glow</span>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-title">Flutter glass technique — per widget</div>
+    <div class="change-row">
+      <span class="change-file">BackdropFilter</span>
+      <span class="change-desc">ImageFilter.blur(sigmaX:20, sigmaY:20)</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">Fill</span>
+      <span class="change-desc">Colors.white.withValues(alpha:0.10)</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">Border</span>
+      <span class="change-desc">Colors.white.withValues(alpha:0.20), 1px</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">Specular</span>
+      <span class="change-desc">Gradient overlay white→transparent, top 50%</span>
+    </div>
+    <div class="change-row">
+      <span class="change-file">Background</span>
+      <span class="change-desc">Rich radial gradient, stays behind all glass</span>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    this.closest('.tab-toggle').querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+document.querySelectorAll('.option-tile').forEach(tile => {
+  tile.addEventListener('click', function() {
+    document.querySelectorAll('.option-tile').forEach(t => {
+      t.classList.remove('correct','wrong');
+    });
+    this.classList.add('correct');
+  });
+});
+document.querySelectorAll('.letter-cell').forEach(cell => {
+  cell.addEventListener('click', function() {
+    document.querySelectorAll('.letter-cell').forEach(c => {
+      c.style.background = '';
+      c.style.borderColor = '';
+      c.querySelector('.cell-char').style.textShadow = '';
+      c.querySelector('.cell-name').style.color = '';
+    });
+    this.style.background = 'rgba(108,92,231,0.25)';
+    this.style.borderColor = 'rgba(180,160,255,0.4)';
+    this.querySelector('.cell-char').style.textShadow = '0 0 20px rgba(200,180,255,0.7)';
+    this.querySelector('.cell-name').style.color = 'rgba(200,185,255,0.9)';
+  });
+});
+</script>
+</body>
+</html>

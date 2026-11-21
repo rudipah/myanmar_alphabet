@@ -29,7 +29,7 @@ class BackgroundPainter extends CustomPainter {
         style: TextStyle(
           fontSize: size.shortestSide * 0.7,
           fontFamily: 'Pyidaungsu',
-          color: Colors.black.withOpacity(0.08),
+          color: Colors.black.withValues(alpha: 0.08),
           fontWeight: FontWeight.bold,
         ),
       ),

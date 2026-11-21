@@ -1,10 +1,12 @@
 name: myanmar_alphabet
 description: Learn Myanmar Alphabet app for children
 publish_to: 'none'
-version: 1.0.3+4
+version: 1.0.5+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  # Code uses Flutter 3.32+ APIs (Color.withValues, Switch.activeThumbColor,
+  # WidgetStatePropertyAll). A tight floor gives a clear error on old SDKs.
+  sdk: '>=3.8.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -13,12 +15,17 @@ dependencies:
   google_mobile_ads: ^5.1.0
   just_audio: ^0.9.40
   shared_preferences: ^2.2.3
-  
+  unity_ads_plugin: ^0.3.20
+  # advertising_id removed — collecting device ad IDs is prohibited
+  # in child-directed apps under COPPA and Google Play Families Policy.
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^6.0.0
   flutter_native_splash: ^2.3.2
   integration_test:
+    sdk: flutter
+  flutter_test:
     sdk: flutter
 
 flutter_launcher_icons:
@@ -30,8 +37,8 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/icon/app_icon.png"
 
 flutter_native_splash:
-  color: "#6C5CE7"
-  image: assets/icon/app_icon.png
+  color: "#150D2E" # matches the dark mesh background (AppColors.meshBase)
+  image: assets/icon/splash_logo.png
   android: true
   ios: true
 

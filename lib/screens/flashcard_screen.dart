@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import '../data/flashcard_data.dart';
 import '../data/data_loader.dart';
 import '../services/sound_service.dart';
 import '../models/flashcard.dart';
 import '../utils/app_colors.dart';
+import '../services/ad_manager.dart';
+import '../widgets/nav_icon_button.dart';
+import '../widgets/banner_ad_widget.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/glass_progress_bar.dart';
+import '../widgets/mesh_background.dart';
 
 class FlashcardScreen extends StatefulWidget {
   const FlashcardScreen({super.key});
@@ -17,16 +22,16 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   bool isFlipped = false;
   List<Flashcard> _flashcards = [];
 
-  Flashcard get currentCard => _flashcards.isNotEmpty ? _flashcards[currentIndex] : Flashcard.empty();
+  Flashcard get currentCard =>
+      _flashcards.isNotEmpty ? _flashcards[currentIndex] : Flashcard.empty();
 
-  /// Load flashcards from JSON or use hardcoded fallback
   Future<void> _loadFlashcards() async {
     try {
       final data = await DataLoader.loadFlashcards();
-      setState(() {
-        _flashcards = data;
-      });
-      debugPrint('Loaded ${_flashcards.length} flashcards from JSON');
+      if (mounted) {
+        setState(() => _flashcards = data);
+        debugPrint('Loaded ${_flashcards.length} flashcards from JSON');
+      }
     } catch (e) {
       debugPrint('Failed to load flashcards (using fallback): $e');
     }
@@ -39,6 +44,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   }
 
   void _nextCard() {
+    if (_flashcards.isEmpty) return; // avoid "% 0" before data has loaded
     setState(() {
       currentIndex = (currentIndex + 1) % _flashcards.length;
       isFlipped = false;
@@ -46,62 +52,83 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   }
 
   void _prevCard() {
+    if (_flashcards.isEmpty) return;
     setState(() {
       currentIndex = (currentIndex - 1 + _flashcards.length) % _flashcards.length;
       isFlipped = false;
     });
   }
 
-  void _flipCard() {
-    setState(() {
-      isFlipped = !isFlipped;
-    });
-  }
-
-  void _repeatLetterAudio() async {
-    await SoundService.playLetter(currentCard.audio);
-  }
-
-  void _repeatDescriptionAudio() async {
-    await SoundService.playLetter(currentCard.descriptionAudio);
-  }
+  void _flipCard() => setState(() => isFlipped = !isFlipped);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0EEFF),
+    final total = _flashcards.length;
+    final progress = total == 0 ? 0.0 : (currentIndex + 1) / total;
+
+    return GlassScaffold(
+      bottomNavigationBar: const BannerAdWidget(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ---- Header (Matching HomeScreen) ----
+              // ---- Header ----
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _buildNavButton(Icons.arrow_back_ios_rounded, () => Navigator.pop(context)),
+                  NavIconButton(
+                    icon: Icons.arrow_back_ios_rounded,
+                    onPressed: () {
+                      AdManager.instance.showInterstitialAd();
+                      Navigator.pop(context);
+                    },
+                  ),
                   const SizedBox(width: 12),
                   const Text(
-                    "Flashcards",
+                    'Flashcards',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF2D2D4E),
+                      color: AppColors.onGlass,
                     ),
                   ),
+                  const Spacer(),
+                  // Card counter
+                  if (total > 0)
+                    GlassContainer(
+                      borderRadius: 14,
+                      blur: 10,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      child: Text(
+                        '${currentIndex + 1} / $total',
+                        style: TextStyle(
+                            color: AppColors.white(0.75),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
                 ],
               ),
+
+              const SizedBox(height: 14),
+
+              // ---- Progress bar ----
+              if (total > 0) GlassProgressBar(value: progress, height: 6),
+
               const SizedBox(height: 16),
 
+              // ---- Card ----
               Expanded(
                 child: Center(
                   child: GestureDetector(
                     onHorizontalDragEnd: (detail) {
-                      if (detail.primaryVelocity! < 0) {
-                        _nextCard(); // Swipe Left -> Next
-                      } else if (detail.primaryVelocity! > 0) {
-                        _prevCard(); // Swipe Right -> Prev
+                      if ((detail.primaryVelocity ?? 0) < 0) {
+                        _nextCard();
+                      } else if ((detail.primaryVelocity ?? 0) > 0) {
+                        _prevCard();
                       }
                     },
                     onTap: _flipCard,
@@ -124,17 +151,36 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                   ),
                 ),
               ),
+
+              // ---- Swipe / tap hint ----
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30),
+                padding: const EdgeInsets.only(top: 8, bottom: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildNavButton(Icons.arrow_back, _prevCard),
-                    const SizedBox(width: 40),
-                    _buildNavButton(Icons.arrow_forward, _nextCard),
+                    Icon(Icons.touch_app, size: 14, color: AppColors.white(0.45)),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Tap to flip  •  Swipe to navigate',
+                      style: TextStyle(fontSize: 12, color: AppColors.white(0.45)),
+                    ),
                   ],
                 ),
-              )
+              ),
+
+              // ---- Navigation arrows ----
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    NavIconButton(icon: Icons.arrow_back, onPressed: _prevCard),
+                    const SizedBox(width: 40),
+                    NavIconButton(
+                        icon: Icons.arrow_forward, onPressed: _nextCard),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -142,127 +188,100 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
     );
   }
 
-  Widget _buildNavButton(IconData icon, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF000000).withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(icon, size: 32, color: AppColors.primary),
-        onPressed: onPressed,
-      ),
-    );
-  }
-
   Widget _buildFront(Flashcard card) {
-    return Card(
+    return GlassContainer(
       key: const ValueKey('front'),
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        width: 340,
-        height: 320,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.white, Colors.indigo.withOpacity(0.05)],
-          ),
-        ),
-        child: Text(
-          card.letter,
-          style: const TextStyle(
-            fontSize: 100,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Pyidaungsu',
-            color: Color(0xFF2D2D4E),
-          ),
+      width: 340,
+      height: 320,
+      borderRadius: 24,
+      blur: 16,
+      fillOpacity: 0.09,
+      specularOpacity: 0.14,
+      alignment: Alignment.center,
+      child: Text(
+        card.letter,
+        style: TextStyle(
+          fontSize: 100,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Pyidaungsu',
+          color: AppColors.onGlass,
+          shadows: [
+            Shadow(color: AppColors.white(0.25), blurRadius: 24),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildBack(Flashcard card) {
-    return Card(
+    return GlassContainer(
       key: const ValueKey('back'),
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        width: 340,
-        height: 320,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          color: Colors.white,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  card.pronunciation,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D2D4E),
-                  ),
+      width: 340,
+      height: 320,
+      borderRadius: 24,
+      blur: 16,
+      fillOpacity: 0.09,
+      specularOpacity: 0.14,
+      padding: const EdgeInsets.all(20),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                card.pronunciation,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onGlass,
                 ),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(Icons.volume_up, color: AppColors.primary),
-                  onPressed: _repeatLetterAudio,
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-            Image.asset(
-              card.image,
-              height: 100,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  card.word ?? '',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Pyidaungsu',
-                    color: Color(0xFF2D2D4E),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(Icons.volume_up, color: AppColors.primary),
-                  onPressed: _repeatDescriptionAudio,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              card.description,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                fontStyle: FontStyle.italic,
               ),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: const Icon(Icons.volume_up, color: AppColors.primaryLight),
+                onPressed: () => SoundService.playLetter(card.audio),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          Image.asset(
+            card.image,
+            height: 100,
+            fit: BoxFit.contain,
+            cacheHeight: 300, // decode small — full-size PNGs cause flip jank
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                card.word ?? '',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Pyidaungsu',
+                  color: AppColors.onGlass,
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: const Icon(Icons.volume_up, color: AppColors.primaryLight),
+                onPressed: () => SoundService.playLetter(card.descriptionAudio),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            card.description,
+            style: TextStyle(
+              fontSize: 16,
+              color: AppColors.white(0.65),
+              fontStyle: FontStyle.italic,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
