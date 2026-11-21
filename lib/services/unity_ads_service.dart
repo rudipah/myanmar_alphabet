@@ -16,6 +16,10 @@ class UnityAdsService {
     return 'Interstitial_Android';
   }
 
+  // Completes when Unity has finished starting (successfully or not), so
+  // loads never run before the SDK is ready.
+  static final Completer<void> _initDone = Completer<void>();
+
   /// Initializes Unity Ads.
   /// testMode automatically follows kDebugMode — no manual toggle needed.
   static Future<void> initialize() async {
@@ -24,14 +28,20 @@ class UnityAdsService {
     try {
       await UnityAds.init(
         gameId: _currentGameId,
-        testMode: kDebugMode, // ✅ true in debug builds, false in release builds
-        onComplete: () => debugPrint(
-            'Unity Ads initialised for ${Platform.isIOS ? "iOS" : "Android"}'),
-        onFailed: (error, message) =>
-            debugPrint('Unity Ads init failed: $error $message'),
+        testMode: kDebugMode, // true in debug builds, false in release builds
+        onComplete: () {
+          debugPrint(
+              'Unity Ads initialised for ${Platform.isIOS ? "iOS" : "Android"}');
+          if (!_initDone.isCompleted) _initDone.complete();
+        },
+        onFailed: (error, message) {
+          debugPrint('Unity Ads init failed: $error $message');
+          if (!_initDone.isCompleted) _initDone.complete();
+        },
       );
     } catch (e) {
       debugPrint('Unity Ads init exception: $e');
+      if (!_initDone.isCompleted) _initDone.complete();
     }
   }
 
@@ -53,21 +63,32 @@ class UnityAdsService {
     final completer = Completer<bool>();
     _loadCompleter = completer;
 
-    UnityAds.load(
-      placementId: _currentInterstitialId,
-      onComplete: (placementId) {
-        debugPrint('Unity interstitial loaded: $placementId');
-        _isLoaded = true;
-        if (!completer.isCompleted) completer.complete(true);
-      },
-      onFailed: (placementId, error, message) {
-        debugPrint('Unity interstitial failed to load: $error $message');
-        _isLoaded = false;
-        if (!completer.isCompleted) completer.complete(false);
+    // Wait (up to 10 s) for Unity to finish starting before loading.
+    _initDone.future
+        .timeout(const Duration(seconds: 10), onTimeout: () {})
+        .then((_) {
+      UnityAds.load(
+        placementId: _currentInterstitialId,
+        onComplete: (placementId) {
+          debugPrint('Unity interstitial loaded: $placementId');
+          _isLoaded = true;
+          if (!completer.isCompleted) completer.complete(true);
+        },
+        onFailed: (placementId, error, message) {
+          debugPrint('Unity interstitial failed to load: $error $message');
+          _isLoaded = false;
+          if (!completer.isCompleted) completer.complete(false);
+        },
+      );
+    });
+
+    return completer.future.timeout(
+      const Duration(seconds: 20),
+      onTimeout: () {
+        _loadCompleter = null; // allow a fresh attempt next time
+        return false;
       },
     );
-
-    return completer.future;
   }
 
   /// Shows the interstitial and reports the REAL outcome:

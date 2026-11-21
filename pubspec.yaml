@@ -1,7 +1,7 @@
 name: myanmar_alphabet
 description: Learn Myanmar Alphabet app for children
 publish_to: 'none'
-version: 1.0.3+4
+version: 1.0.5+1
 
 environment:
   # Code uses Flutter 3.32+ APIs (Color.withValues, Switch.activeThumbColor,

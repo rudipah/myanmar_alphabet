@@ -1,6 +1,6 @@
 # Myanmar Alphabet — Project Handoff & Update Log
 
-> **Status:** Reflects the code in `lib.zip` as of 18 Nov 2026 (after §3A ad/streak/cleanup, §3B liquid glass UI, §3C menu simplification, §3D flashcard fixes, §3E flashcard banner, §3F review fixes, §3G manifest/pubspec review, §3H privacy policy review, §3I duplicate class + deprecations, §3J analyzer clean-up + code-vs-handoff check, §3K–§3L website/icon, §3M website phone mock-up, §3N project documentation + UML review). Where this file and the code disagree, the code wins.
+> **Status:** Reflects the code in `lib.zip` as of 18 Nov 2026 (after §3A ad/streak/cleanup, §3B liquid glass UI, §3C menu simplification, §3D flashcard fixes, §3E flashcard banner, §3F review fixes, §3G manifest/pubspec review, §3H privacy policy review, §3I duplicate class + deprecations, §3J analyzer clean-up + code-vs-handoff check, §3K–§3M website/icon/iOS release prep, §3N website phone mock-up, §3O documentation v2.0, §3P App Store header art, §3Q App Store text for the next version, UML review). Where this file and the code disagree, the code wins.
 >
 > **Purpose:** This document is written for any AI agent or developer continuing work on this project.
 > It captures the full current state, what was recently changed and why, what still needs doing,
@@ -18,7 +18,7 @@
 | **Framework** | Flutter / Dart (Windows dev machine) |
 | **Target platforms** | **iOS only** — live on the App Store. Android is used for local testing (emulator) only and is **not published** (confirmed by the developer, 18 Nov 2026). |
 | **Audience** | Children age 4+, learning Myanmar consonants (33) and numbers (0–10) |
-| **Developer** | Ru di pah — `rudipah@gmail.com` / GitHub: `rudipah` |
+| **Developer** | Ru di pah (the privacy policy spells it "Ru Di Pah"; use one spelling consistently) — contact email **`learnmyanmaralphabet@gmail.com`** (confirmed by the developer 21 Nov 2026; use it on the privacy policy, website and App Store Connect) / GitHub: `rudipah` |
 | **Project path (Windows)** | `C:\Users\dipah\Documents\myanmar_alphabet\` |
 | **Developer website** | https://learn-myanmar-alphabet.web.app/ (Firebase Hosting; new app-information homepage prepared, deployment not yet confirmed — see §3K). The old GitHub Pages site is no longer the developer website. |
 
@@ -591,59 +591,157 @@ To change the icon or splash:
 
 ---
 
-## 3M. Website: phone mock-up = the app's main screen (19 Nov 2026)
+## 3M. Mac setup, iOS release prep and Unity hardening (20–21 Nov 2026)
 
-The developer asked for a phone screen on the website that looks like the app's main screen. A preview image was shown and approved first, then applied to the §3K website bundle (delivered as `learn_myanmar_alphabet_website_phone_ui.zip`, same folder layout as the bundle the developer sent: `learn_myanmar_alphabet/{firebase.json,.firebaserc,public/…}`). **Not deployed yet** — see "Deploy" below.
+**Dev machine:** the developer is now building on a **Mac** (MacBook Pro, user `rudipah`, project at `/Users/rudipah/Documents/myanmar_alphabet`), so iOS builds can be made locally. Windows was used earlier (§7). Not compiled/verified by the authoring agent.
 
-### What changed (only 2 files differ from the bundle the developer sent)
-- `public/index.html`
-  - The hero's old generic phone ("Hello, learner!", letter card, mini grid) is replaced by a phone showing the app's menu screen (`menu_screen.dart`, §3B/§3C): glass app icon with က, "🌟 Letter of the Day:" pill (shows ခ, static), title "Learn Myanmar Alphabet", "Tap start to begin learning", purple **Start Learning** button, 2×2 grid (📚 Flashcards, 🎯 Quiz Time, 🧩 Matching, 📊 Progress) and ⚙️ Settings. No streak badge / mute button (removed in §3C) and no banner ad.
-  - Built in HTML/CSS (no screenshot image): classes `.phone-app`, `.app-screen`, `.app-canvas`, `.g-tile`, `.g-pill`, `.g-btn`, `.g-primary`, `.g-grid`. The phone is `role="img"` with an `aria-label`; the inner markup is `aria-hidden`.
-  - The stylesheet link is now `/assets/styles.css?v=2` (cache-buster so returning visitors get the new CSS; bump the number on future CSS changes).
-- `public/assets/styles.css`: a clearly commented block appended at the end ("Phone mock = the app's real main (menu) screen…").
-  - The screen is drawn at the app's real logical size (390 px wide) and scaled with `transform: scale(.6974)` into a 276×560 phone, so spacing/proportions match the app (icon tile 110, buttons 64 / 74 high, radius 24–30).
-  - Colours = the app's mesh background: base `#150D2E` + radial blobs `#5C2FA8`, `#8B1A6B`, `#0D5C9A`, `#1B6E8F`; glass = `rgba(255,255,255,.10)` fill, 1 px `rgba(255,255,255,.2)` border, top-half white highlight; Start Learning tint = primary purple at 55%. Slow drifting background (`meshdrift`, 22 s), disabled under `prefers-reduced-motion`.
-  - Layout: `.hero-art` height 480 → 560 (600 under 850 px width) because the phone is taller; on phones (≤600 px) phone `scale(.86)` and the "Great work!" pill / green letter chip are moved so they do not cover the buttons.
-- Untouched (byte-identical): `privacy_policy.html`, `app-ads.txt`, `404.html`, `firebase.json`, `.firebaserc`, `site.js`, all icons and `og-image.png`.
+**Setup problems solved**
+- `flutter pub get` failed with "dubious ownership" for `/opt/homebrew/Caskroom/flutter/...`, and `brew upgrade` with "/opt/homebrew is not writable". Cause: Homebrew's folders were owned by another user. Fix: `sudo chown -R $(whoami) /opt/homebrew`.
+- Flutter was **3.19.6 (Dart 3.3)**, too old for the project (needs Dart >=3.8). Fix: `brew upgrade --cask flutter` (offered 3.50.1), then `flutter pub get` and `flutter doctor -v`. If CocoaPods is flagged: `brew install cocoapods`. Not yet confirmed that the new Flutter builds the project cleanly.
+- No iOS device was usable (iPad / iPhones "unpaired"). Use the iOS Simulator (`open -a Simulator`, `flutter run`), or pair a real iPhone (cable, Trust, Developer Mode on, Xcode > Window > Devices and Simulators).
+- Release-mode build on the iPhone failed: **"PLA Update available… agree to the latest Program License Agreement"** and "provisioning profile doesn't include the selected device". Fix: the Account Holder accepts the new agreement at developer.apple.com/account; then in `ios/Runner.xcworkspace` > Signing & Capabilities keep "Automatically manage signing" with the team selected, build once in Xcode, or Xcode > Settings > Accounts > Download Manual Profiles. Bundle ID: `com.rudipah.learnmyanmaralphabet`. Status after this: not confirmed fixed.
+- Release mode cannot run on the simulator. For device testing: `flutter run --release`.
 
-### Testing done / not done
-- Rendered in headless Chromium at 1280 px and 390 px wide (screenshots `preview_desktop.png`, `preview_mobile.png`); HTML tags balanced, CSS braces balanced. The preview used Noto Sans Myanmar for the letters (the live page loads it from Google Fonts; the app itself uses Pyidaungsu, so glyph shapes differ slightly).
-- **Not tested** in Safari/Firefox or on a real phone. Check iOS Safari in particular (it handles `transform: scale` + `overflow: hidden` + rounded corners differently from Chromium at times).
+**AdMob IDs (clarified)**
+- App IDs contain `~` and go in native config, **not** in Dart: iOS `ca-app-pub-4129659429509766~7354280406` in `ios/Runner/Info.plist` as `GADApplicationIdentifier`; Android `ca-app-pub-4129659429509766~4839286959` in `AndroidManifest.xml` `com.google.android.gms.ads.APPLICATION_ID`. `Info.plist` has still not been seen by the authoring agent. The App ID must belong to the same AdMob iOS app that owns the iOS banner unit `…/7699563630`.
+- Ad unit IDs contain `/` and go in `lib/utils/ad_helper.dart`. The two banner IDs there are correct. `ad_helper.dart` was reviewed on 21 Nov and is correct; **the iOS interstitial `REPLACE_IOS_INTERSTITIAL` (line ~39) is still a placeholder** until the developer creates the unit in AdMob (iOS app > Ad units > Interstitial) and pastes the real ID. New units can take hours to fill.
+- Optional guard (not applied): in `AdHelper.loadInterstitialAd()` return false when `interstitialAdUnitId.contains('REPLACE_')`.
 
-### Deploy (developer, Windows)
-1. Copy `public/index.html` and `public/assets/styles.css` from the zip into the existing Firebase project's `public/` folder (or merge the whole zip; the other files are unchanged).
-2. From the project folder: `firebase use` (should show `learn-myanmar-alphabet`), then `firebase deploy --only hosting`.
-3. Hard-refresh (Ctrl+F5) https://learn-myanmar-alphabet.web.app/ and check desktop + phone widths, then confirm `/privacy_policy.html` and `/app-ads.txt` still load.
+**Unity Ads — `lib/services/unity_ads_service.dart` rewritten (delivered as a full file, 21 Nov)**
+- Config unchanged: iOS game ID `800111406`, placement `Interstitial_iOS` (must match the dashboard name exactly), `testMode: kDebugMode`.
+- New: `_initDone` completer completed from `onComplete`/`onFailed`/catch in `initialize()`; `loadInterstitialAd()` waits up to 10 s for it before calling `UnityAds.load` (the plugin's `init` future likely returns before `onComplete`; not confirmed in plugin source). The load future now has a 20 s timeout that clears `_loadCompleter`, so one stuck load can't block later loads. Show logic unchanged.
+- Not compiled; run `flutter analyze` after applying.
+- Unity dashboard: iOS project must answer **yes** to "targets children under 13"; confirm placement name and Live status; copy Unity's `app-ads.txt` line into the website. COPPA for Unity is dashboard-only (the plugin's `ageGate` consent type was not verified as the COPPA switch).
 
-### Maintenance notes
-- The phone is a hand-built replica, not the live app. If the app's main menu changes (labels, buttons, streak badge returns, new colours), update the `.phone-app` markup/CSS to match.
-- Possible follow-ups offered to the developer, not requested yet: a second smaller phone (Flashcards or Quiz screen); a different fixed letter in the "Letter of the Day" pill.
-- **Still open from §3K (not changed here):** the download section still says "Android version coming soon" although the app is iOS-only; the live `privacy_policy.html` is outdated and must be replaced with the §3H rewrite; the live `app-ads.txt` has only the AdMob line (the bundle's copy: `google.com, pub-4129659429509766, DIRECT, f08c47fec0942fa0`) and still needs the Unity lines from the Unity dashboard.
+**Apple Kids Category (checked 21 Nov 2026 against developer.apple.com guidelines; the page was truncated mid-5.1.4, so not read in full)**
+- 1.3: Kids Category apps "should not include third-party analytics or third-party advertising"; narrow exceptions: contextual ads from services with publicly documented kids policies including human review of ad creatives; no links out of the app (ads open the App Store/web) unless behind a parental gate; no personal/device info sent to third parties.
+- 5.1.4(a): "Apps intended primarily for kids should not include third-party analytics or third-party advertising" (worded by intent, not category; scope outside the Kids Category not confirmed). 2.5.18 prohibits targeted/behavioral ads based on data from kids.
+- **Open:** the developer has not yet said whether the app is in the Kids Category (App Store Connect > App Information). The app has AdMob + Unity ads and no parental gate. Decide before the next release: remove third-party ads, or keep them only if the networks meet Apple's conditions and add a parental gate before anything that opens outside the app, or ask App Review via Resolution Center. Not legal advice.
+
+**Unity COPPA dashboard setting (from Unity docs, not verified in the account):** Monetization dashboard > Monetization > Apps > the iOS app > Monetization tab > "Child-directed ad network settings" > "This app is directed to children"; "Is this a Mixed Audience app?" = No. Unity then serves contextual ads only. The `user.nonbehavioral` code option is only for mixed-audience apps (not needed).
+
+**SKAdNetwork (Unity warning "add SKAdNetwork IDs", 21 Nov 2026)**
+- Unity's dashboard (Project Settings > Missing SKAdNetwork IDs > Copy) gave 76 IDs, including Google's `cstr6suwn9.skadnetwork`. Delivered as `skadnetwork_block.xml` (a `SKAdNetworkItems` key + array) to paste into `ios/Runner/Info.plist` (one key only; merge into the array if it already exists; no duplicates). Not yet applied by the developer.
+- Also compare against Google's AdMob iOS setup page for any missing AdMob IDs. SKAdNetwork is Apple's privacy-preserving attribution and does not use the advertising ID. Goes in with the next release build.
+
+**`ios/Runner/Info.plist` reviewed and rewritten (21 Nov 2026, delivered as a full file; not yet applied or built by the developer)**
+- `GADApplicationIdentifier` = `ca-app-pub-4129659429509766~7354280406` was already correct.
+- `SKAdNetworkItems`: the developer's file **already contained all 76 IDs** from Unity's list (compared, same set, no duplicates, includes Google's `cstr6suwn9.skadnetwork`), so no IDs were added. The Unity "missing SKAdNetwork IDs" warning is probably about the build already on the store or a delay; it should clear after a release with these IDs. AdMob's own list should still be compared once against Google's AdMob iOS setup page.
+- **Removed `NSUserTrackingUsageDescription`** ("…used to deliver personalized ads to you"): it contradicts the child-directed, non-personalised setup and the privacy policy, and the code never requests App Tracking Transparency (the handoff says never add the ATT prompt). In App Store Connect > App Privacy, "Tracking" should stay No.
+- ~~Removed `NSMicrophoneUsageDescription`~~ **Wrong, reversed on 21 Nov 2026:** App Store Connect rejected the upload with **90683 "Missing purpose string… NSMicrophoneUsageDescription"** because a library bundled in the app (probably the audio stack) references microphone APIs, so the key is required even though the app's own code never records. Restored with an honest text ("This app does not record audio and never asks to use the microphone. This note is required because the app includes a standard audio library that refers to it."). The app still never prompts for the microphone, so the privacy policy statement (no microphone access) stays true. Needs a new build with a higher build number (e.g. `+6`), archive and upload again. Lesson: only remove permission strings after checking the *built* app, not just `lib/`.
+- Left unchanged: everything else, including landscape being listed in `UISupportedInterfaceOrientations` (the app locks portrait in code, `main.dart`) and the Android App ID comment.
+- Optional, not added: `ITSAppUsesNonExemptEncryption` = `false`, which skips the export-compliance question on each upload if the app uses only standard HTTPS encryption. It's a declaration to Apple, so the developer decides.
+
+**Privacy policy file reviewed (21 Nov 2026) — `privacy_policy.html` corrected and delivered**
+- The developer's own policy file (dated 18 Nov) matches how the app works. Corrections made: the Android-only advertising-ID bullet in section 2 replaced by "The app does not ask permission to track you and does not use the advertising ID to follow children across apps or websites"; "Last updated" set to 21 November 2026. Contact email stays `learnmyanmaralphabet@gmail.com`.
+- **Contact email decision:** `learnmyanmaralphabet@gmail.com` is the correct address. Earlier drafts and the website bundle used `rudipah@gmail.com`; the website bundle (`learn_myanmar_alphabet_website_new_icon.zip`, `public/index.html` footer and `README.txt`) was re-delivered with the new address. My unsent second website draft (§3K) also used `rudipah@gmail.com` and would need the same change.
+- Still true only after the dashboards are set: section 4's statement that the app is marked as directed to children in AdMob's and Unity's settings (Unity setting not yet confirmed done). The live site's `privacy_policy.html` is still the outdated one until this file is deployed at the same URL (`/privacy_policy.html`). Also keep the App Store Connect support contact consistent with this email.
+- Left as is: developer name spelling ("Ru Di Pah" in the policy), the plain page style, and the parental-supervision note about ad links (not a substitute for a parental gate if the app is in the Kids Category).
+
+**Building and uploading with Xcode (the developer uses Xcode for release builds; first upload done 21 Nov 2026)**
+1. Raise the version in `pubspec.yaml`, then `flutter clean`, `flutter pub get`, `flutter build ios --release --no-codesign` (this writes the version/build into the iOS settings; `cd ios && pod install` if CocoaPods complains).
+2. `open ios/Runner.xcworkspace` (the workspace, not the `.xcodeproj`). Runner target > General: check name, version, build. Signing & Capabilities: automatic signing, team, bundle ID `com.rudipah.learnmyanmaralphabet`.
+3. Destination **Any iOS Device (arm64)** (Archive is greyed out with a simulator), then Product > Archive.
+4. Organizer > Distribute App > App Store Connect > Distribute (Upload), defaults, Upload. Wait for the processing email (10–30 min), then add the version in App Store Connect, pick the build, fill in What's New/screenshots, check App Privacy, submit.
+- If it fails: "build number already used" means raise the number after `+`; license errors mean accept the agreement at developer.apple.com/account.
+
+**App Store Connect warnings after the first upload (21 Nov 2026)**
+- "Built with iOS 26.4 SDK": from **April 2027** uploads need the iOS 27 SDK (Xcode 27 or later). Nothing to do now; update Xcode and rebuild for the next release after that.
+- "Deployment target too low (iOS 13.0)": from **April 2027** apps must target **iOS 15.0 or later**. Not a blocker for the current upload. Fix prepared (not yet applied or built by the developer): in `ios/Podfile` set `platform :ios, '15.0'` (it was commented out as `'13.0'`) and add `config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'` for every pod target in `post_install` (keep `flutter_additional_ios_build_settings(target)`); in Xcode set **Minimum Deployments** to 15.0 on the Runner target (General) and the Runner project (Info); then `cd ios && pod install --repo-update`, `flutter clean`, `flutter pub get`, `flutter build ios --release --no-codesign`, a release test on the iPhone, archive again. This drops the few devices on iOS 13–14.
+- `ios/Flutter/AppFrameworkInfo.plist` was checked: it has **no** `MinimumOSVersion` key (newer Flutter template), so nothing to change there (an earlier suggestion to edit it was wrong).
+- "Upload Symbols Failed: objective_c.framework dSYM": ignorable. It only affects crash-report symbolication for that library; the app has no crash-reporting service and Apple still accepts the build.
+
+**Firebase CLI on the Mac:** `zsh: command not found: firebase` fixed by `brew install firebase-cli` (or `brew install node` then `npm install -g firebase-tools`), then `firebase login`, `cd` to the folder with `firebase.json` and `public/`, `firebase use` (should say `learn-myanmar-alphabet`), `firebase deploy --only hosting`. Status of the website deploy: not confirmed.
+
+**Upload error 90683 (21 Nov 2026):** missing `NSMicrophoneUsageDescription`; fixed by restoring the key (see the Info.plist note above). `NSUserTrackingUsageDescription` stays removed (no App Tracking Transparency use). Next: raise the build number in `pubspec.yaml`, `flutter clean`, `flutter pub get`, `flutter build ios --release --no-codesign`, archive and upload again, then pick the new build for the version in App Store Connect.
+
+**App Store Connect submission questions (21 Nov 2026) — answers given to the developer**
+- China mainland **Security Assessment** (end-to-end encrypted messaging / AIGC): **No** (no messaging, no AI features).
+- China mainland **AI Generated or Synthetic Content**: **No** (all content is fixed and bundled).
+- Age-rating questions about social feeds / user-generated content: **None / No** (no feed, posts, sharing or accounts).
+- **"Social Media Disabled for Users Under 13"** (relies on the Declared Age Range API): leave **unchecked / not applicable**; the app has no social features and does not call that API, so ticking it would be untrue.
+- If other China compliance questions (e.g. a filing number) appear, check Pricing and Availability to see whether China mainland is selected; not yet checked.
+- Encryption/export-compliance question: answer honestly for the app (standard HTTPS only usually counts as exempt); `ITSAppUsesNonExemptEncryption` is not set in `Info.plist` (optional, developer's decision).
+- Answers must stay consistent with the age rating, App Privacy and the privacy policy. Still open before submitting: whether **Made for Kids** is on (App Information > Edit > Age Categories and Override), the Unity "directed to children" setting, and deploying the corrected privacy policy.
+
+**Release status (as of 21 Nov 2026):** build uploaded and processed once; a later upload failed validation with 90683 (microphone purpose string) and needs a new build with the restored key and a higher build number (see above). Warnings left are ignorable (iOS 27 SDK from April 2027; `objective_c.framework` dSYM); the iOS 15 deployment target change cleared its warning. Not yet submitted for review.
+
+**Screenshots without banners (optional, not applied)**
+Compile-time flag in `lib/widgets/banner_ad_widget.dart`: add `const bool _hideAds = bool.fromEnvironment('HIDE_ADS');` above the class, and add `|| _hideAds` to the early return in `didChangeDependencies` and to the `_failed || kIsWeb` check in `build`. Run with `flutter run --dart-define=HIDE_ADS=true`. Normal and release builds are unaffected.
+
+**Release to the App Store (update of the live app)**
+1. Code: real iOS interstitial ID; bump `pubspec.yaml` version (e.g. `1.0.4+5`, the build number above the live one); regenerate icon/splash if using the new icon (§3L); `flutter analyze`, `flutter test`; release test on an iPhone.
+2. Signing: accept the Apple agreement; team selected in Xcode.
+3. `flutter clean`, `flutter pub get`, `flutter build ipa --release` (output in `build/ios/ipa/`; `cd ios && pod install` if CocoaPods complains).
+4. Upload with Transporter (drag the `.ipa`) or Xcode Organizer from `build/ios/archive/Runner.xcarchive` (Distribute App).
+5. App Store Connect: add the new version, "What's New", screenshots, select the processed build, Marketing URL `https://learn-myanmar-alphabet.web.app/`, privacy policy URL `https://learn-myanmar-alphabet.web.app/privacy_policy.html` (the live policy is outdated, replace it first, §3H/§3K), review App Privacy and the Kids Category rules (§4.1), export-compliance question.
+6. Submit for review; after approval install the live build and check banners, an interstitial and the icon; check `app-ads.txt` loads.
+
+## 3N. Website: phone mock-up of the app's main screen (19–21 Nov 2026)
+
+The developer approved a preview, then received `learn_myanmar_alphabet_website_phone_ui.zip`: only `public/index.html` and `public/assets/styles.css` differ from the website bundle of §3K.
+- The hero's generic phone ("Hello, learner!") is replaced by a phone showing the app's main menu (`menu_screen.dart`, §3B/§3C): glass app icon with က, "Letter of the Day" pill (static ခ), title, "Tap start to begin learning", purple **Start Learning**, 2×2 grid (Flashcards, Quiz Time, Matching, Progress) and Settings (no streak badge / mute button, no banner). Built in HTML/CSS at the app's real 390 px width and scaled with `transform: scale(.6974)` into a 276×560 phone; mesh colours `#150D2E` base + `#5C2FA8`, `#8B1A6B`, `#0D5C9A`, `#1B6E8F`; slow drift animation off under `prefers-reduced-motion`. New CSS block is appended at the end of `styles.css`; `.hero-art` height 560 (600 under 850 px); `styles.css?v=2` cache-buster in `index.html`.
+- **Status:** the `public.zip` the developer sent on 21 Nov does **not** contain this change (`phone-app` not found in `index.html` / `styles.css`, `styles.css` dated 19 Nov). Either it was not applied or the bundle predates it — check before deploying. Safari/real-phone testing was not done.
+- Maintenance: it is a hand-built replica, not the live app; update it if the main menu changes.
+
+## 3O. Documentation Word file rewritten — edition 2.0 (21 Nov 2026)
+
+`learn_myanmar_alphabet_docs_v1_1.docx` (written for app v1.0.0: tracing only, MP3 audio, one banner, Android + iOS, placeholder bundle ID) was reviewed against the current app and rebuilt as **`learn_myanmar_alphabet_docs_v2_0.docx`** (22 pages, same look: purple headings, tables, dark diagram boxes; generated with docx-js, so edit via the generator or in Word).
+- Updated: platform (iOS live; Android not released), 8 screens and their behaviour (Menu, Letters, Tracing with stroke validation, Flashcards, Quiz, Matching, Progress, Settings), OGG short/long audio, AdMob + Unity ads and the rules in `AdManager`, liquid-glass UI, services/widgets file tree, navigation and data-flow diagrams, store identity/description/keywords, privacy and ads disclosure table, content inventory, progress-star rules (1–3 = 1 star, 4–7 = 2, 8+ = 3), user guide, troubleshooting, an iOS-first release checklist (bundle ID `com.rudipah.learnmyanmaralphabet`, support email `learnmyanmaralphabet@gmail.com`, iOS 15.0 target, error 90683 / microphone string, SKAdNetwork, Kids Category), Google Play items kept separate "only if Android", future enhancements from §4.3, and **Appendix A "Items to Confirm"** (audio file count, app size, Kids Category status, Unity/AdMob dashboard settings, Flutter version on the Mac, live privacy page / app-ads.txt).
+- Not verified (so listed in Appendix A rather than stated): installed app size, number of audio files, iOS subtitle currently in App Store Connect.
+- Keep it in sync: any change to behaviour, ads or release steps should be reflected in sections 1.4, 4.1, 4.4 and 6.
+
+## 3P. App Store header and search-result art (21 Nov 2026)
+
+App Store Connect asked for a **header** image (5244×2950 or 3840×1646 px) and a **search-results** image (5244×2950, 3840×2560 or 1920×1280 px). Four PNGs were produced, in the website's theme (background `#fbfaff` with lavender/peach glows, Nunito 900 headline with the `#7965e9 → #e17caa` gradient word, DM Sans text, pastel letter chips, white pills, the new app icon, and a phone showing the app's main menu as in §3N):
+
+| File | Size | Use |
+|---|---|---|
+| `appstore_header_5244x2950.png` | 5244×2950 | Header, and also valid for Search results |
+| `appstore_header_3840x1646.png` | 3840×1646 | Header (wide banner crop, no feature pills) |
+| `appstore_search_3840x2560.png` | 3840×2560 | Search results |
+| `appstore_search_1920x1280.png` | 1920×1280 | Search results (same design at half size) |
+
+- Text on the art: "A little learning goes a long way", **"Big adventures start with one letter."**, "Trace, listen, play and build confidence — one character at a time.", tags "33 consonants / Numbers 0–10 / Flashcards · Quiz · Matching". No App Store badge and no price/ads text, which keeps it within Apple's marketing-asset rules (not checked line by line against Apple's current guidelines).
+- Files are RGB PNG (no alpha), sizes verified exactly; 0.8–3.9 MB each. The app icon used is `assets/app-icon.png` from the 21 Nov `public.zip` (new icon, §3L).
+- Rendered from an HTML template with headless Chromium (stage drawn at 1920 px wide and scaled to the target size); the design reuses the §3N phone markup. To change wording or the phone, edit the template and re-render, or ask an agent to regenerate.
+- Open: the art shows the main menu, so it assumes the current glass UI ships in the version being submitted. Apple may crop the search-result image to different aspect ratios in places; the key content sits in the central area.
 
 ---
 
-## 3N. Project documentation (.docx) refresh + UML review (19 Nov 2026)
+## 3Q. App Store text for the next version + UML review (21 Nov 2026)
 
-Documentation only — **no app code, `pubspec.yaml` or website files changed.**
+Text only — **no app code, `pubspec.yaml` or website files changed.** All wording below is a draft for the developer to paste into App Store Connect.
 
-### `learn_myanmar_alphabet_docs_v1_1.docx` → `learn_myanmar_alphabet_docs_v1_2.docx`
-- The v1.1 doc still described the original v1.0.0 app (tracing only, Android + iOS, MP3 audio, one banner on the tracing screen). It was rebuilt in the same styles to match this handoff (version 1.0.3+4, iOS only). The Myanmar content tables (§4.2 of the doc) were kept unchanged.
-- **Updated:** cover and overview; all screens (menu, letter grid, tracing, flashcards, quiz, matching, progress, settings); liquid-glass UI; `.ogg` short/long audio; layered, startup/ad-flow and file-tree diagrams; non-functional requirements; external integrations with resolved versions; technical stack.
-- **New doc sections:** 1.7 Advertising & Child-Directed Compliance, 1.8 Data Persistence, 3.7 Developer Website & Hosting, 6.1 pre-release manual actions (from §4.1 here), 6.5 backlog (from §4.3 here), 6.6 Known Limitations, and 7 Revision History.
-- **Removed:** Google Play content (short description, tags, `.aab` steps, Android screenshot sizes), the "44 MP3 files" claim, and backlog items that already exist (quiz, progress tracking, saved progress).
-- **Store text in the doc is a draft, not live copy:** the App Store subtitle, keywords, screenshot sizes and minimum iOS version are carried over from v1.0.0 and marked "confirm in App Store Connect". The full description and promotional text are a *suggested* rewrite — review before submitting. Home-grid tab/column details and tracing stroke width/opacity were not re-verified against code.
-- The doc must be refreshed again if the menu changes, the streak badge returns, or the icon/website change.
+### What's New in This Version (final, as edited by the developer)
+```
+• New liquid glass UI design
+• Added banner ads
+• New app icon
+• Improved performance
+• Smoother, more reliable experience and many small fixes
+```
+- The developer supplied these points; "improve the performance" and "smoother, more reliable performance" were merged into two lines. A longer first draft (Flashcards, Quiz, Matching, Progress, Letter of the Day, Settings) was dropped by the developer.
+- Assumption to check: the live version already has the activities (the developer's current description lists Quiz, Matching, Progress and short/long audio). Banner ads are mentioned, but the app also shows **interstitial** ads (§5).
+
+### App Store description (updated from the developer's current text)
+Changes only: the interface paragraph now says "a fresh liquid glass design with a colourful animated background"; added features "Letter of the Day", "New liquid glass design with a new app icon", "Smoother, faster and more reliable performance"; added a last line "The app is free and contains banner and interstitial ads." (ad disclosure; delete "and interstitial" only if the developer prefers). Everything else is the developer's existing wording.
+- **Check before submitting:** "guided stroke order" is the developer's wording; the code has a stroke guide that follows each letter's shape and validates coverage (§3F), not necessarily an animated stroke *order*. "Guided letter tracing" is the safer claim.
+- Not claimed on purpose: "child-friendly/non-personalised ads" — true only after the AdMob and Unity child-directed dashboard settings are done and the Kids Category question (§3M, §4.1) is settled.
+
+### Promotional text (170 characters max; can be changed without a new version)
+Current: *Learn Myanmar alphabet with fun tracing, clear audio, and interactive practice for kids.* Three drafts were offered (the developer has not chosen yet):
+1. (160 chars, recommended, closest to the current text) `Learn the Myanmar alphabet with fun tracing, clear audio, quizzes and matching games for kids. Now with a fresh liquid glass design and a new Letter of the Day.`
+2. (141 chars) `Trace, listen, play and learn Myanmar letters! Flashcards, quizzes, matching games and a Letter of the Day, now in a new liquid glass design.`
+3. (124 chars) `Fun Myanmar alphabet tracing, clear audio, quizzes and matching games for kids. Now with a new liquid glass design and icon!`
+
+### Documentation files
+An interim `learn_myanmar_alphabet_docs_v1_2.docx` (rebuilt from the handoff before §3O) was delivered earlier the same day. It is **superseded by `learn_myanmar_alphabet_docs_v2_0.docx` (§3O)**: v1.2 still lists contact `rudipah@gmail.com`, uses a placeholder for the iOS bundle ID and says "iOS minimum: confirm", so do not use it.
 
 ### UML class diagram
-- A class diagram of the current structure was drawn inline in the chat (Mermaid; **not saved as a file**). It covers: the menu and activity screens, `SoundService`, `PreferencesService`, `TracingValidator`, `AdManager`, `UnityAdsService`, `AdHelper`, `AppInitializer`, `DataLoader`, `MyanmarLetter`, `Flashcard`, `BannerAdWidget`, `TracingCanvas`. Members shown are only those named in this handoff.
-- The developer's existing `UML_Diagram.png` (a tracing-only slice, matches the v1.0.0 design) was checked against this handoff. **Do not reuse it as-is.** Findings:
-  - `HomeScreen` opens `TracingScreenWithNav` (which wraps `TracingScreen`), not `TracingScreen` directly (§3I).
-  - `SoundService` now has `playLetter(file, {waitForCompletion})`, `playLetterAndWord()`, `stop()`, and is mute-aware (§3D, §3J).
-  - `TracingScreen._onDone` validates with `TracingValidator` and calls `PreferencesService.recordStudyActivity()` — both missing from the PNG (§3A.3, §3F).
-  - `BannerAd` should be `BannerAdWidget` (adaptive, wraps AdMob's `BannerAd`, handles load/dispose itself) (§3.2, §3F).
-  - Notation: Dart `_`-prefixed members are private (`-`), not `+`; `TracingCanvas` is composition, not a plain arrow; "uses" / "navigates" are dependencies (dashed).
-  - Missing entirely: `MenuScreen`, Flashcards, Quiz, Matching, Progress, Settings, `PreferencesService`, `AdManager`, `UnityAdsService`, `DataLoader`, `Flashcard`, glass widgets.
-- **Open:** the developer was offered an updated PlantUML version (full diagram, or tracing slice + overview); not yet chosen. Check private field names and the `colorValue` type against the code before drawing it.
+- A class diagram of the current structure was drawn in chat (Mermaid; **not saved as a file**): menu and activity screens, `SoundService`, `PreferencesService`, `TracingValidator`, `AdManager`, `UnityAdsService`, `AdHelper`, `AppInitializer`, `DataLoader`, `MyanmarLetter`, `Flashcard`, `BannerAdWidget`, `TracingCanvas`.
+- The developer's `UML_Diagram.png` (a tracing-only slice from the v1.0.0 design) is **out of date — do not reuse as-is**: `HomeScreen` opens `TracingScreenWithNav` (wrapping `TracingScreen`), not `TracingScreen` directly; `SoundService` now has `playLetter(file, {waitForCompletion})`, `playLetterAndWord()`, `stop()` and is mute-aware; `TracingScreen._onDone` validates with `TracingValidator` and calls `PreferencesService.recordStudyActivity()`; `BannerAd` should be `BannerAdWidget`; Dart `_`-prefixed members are private (`-`), `TracingCanvas` is composition, "uses"/"navigates" are dependencies (dashed); `MenuScreen`, Flashcards, Quiz, Matching, Progress, Settings, `PreferencesService`, `AdManager`, `UnityAdsService`, `DataLoader`, `Flashcard` are missing.
+- **Open:** an updated PlantUML version was offered (full diagram or tracing slice + overview); not chosen yet. Check private field names and the `colorValue` type against the code first.
 
 ---
 
@@ -663,9 +761,9 @@ The app is **iOS-only and already live**, so the Android-only items (Play Consol
 | Privacy policy URL | App Store Connect | Use the rewritten page (§3H); fill in `[your name or business name]` first. Keep the same URL if hosting moves. |
 | `Info.plist` | `ios/Runner/Info.plist` | Needs the AdMob app ID (`GADApplicationIdentifier`). Not reviewed yet (file not seen). Do **not** add an App Tracking Transparency prompt — the app must not track children. |
 | Version bump | `pubspec.yaml` | `1.0.3+4` → e.g. `1.0.4+5`; the build number must be higher than the one already live. |
+| Upload header and search-result art | App Store Connect | Use the files from §3P (header 5244×2950 or 3840×1646; search results 5244×2950, 3840×2560 or 1920×1280). |
 | Release smoke test | Real iPhone | Run a release build and play through every screen; confirm banners and an interstitial appear. Also run `flutter test` once. |
-| Deploy the website | Firebase Hosting | The prepared site (§3K, with the phone mock-up from §3M) is **not deployed yet**: `firebase deploy --only hosting`, then check the three URLs listed in §3K. |
-| app-ads.txt | Firebase Hosting | The site moved to Firebase (§3K); the file at `/app-ads.txt` must contain the AdMob line **plus the Unity lines** from the Unity dashboard, then AdMob must show it as verified (can take a day or more). Set the Marketing URL in App Store Connect to `https://learn-myanmar-alphabet.web.app/`. |
+| app-ads.txt | Firebase Hosting | Migrate site from GitHub Pages subfolder (see §6) so AdMob can verify the app. |
 
 ### 4.2 Code cleanup
 - Done once (§3A.4), but the four legacy files keep returning in zips — delete by hand (box under §2).
@@ -751,8 +849,8 @@ The app is **iOS-only and already live**, so the Android-only items (Play Consol
 
 | Tool | Detail |
 |---|---|
-| OS | Windows (developer machine) |
-| IDE | Android Studio + VS Code |
+| OS | macOS (MacBook Pro, from 20 Nov 2026, §3M); earlier work was on Windows |
+| IDE | Android Studio + VS Code; Xcode for iOS archive/upload (Mac) |
 | Flutter | 3.41.6 stable (Dart 3.11.4); `pubspec.yaml` SDK constraint `>=3.8.0 <4.0.0` (raised in §3G) |
 | Java for Gradle | JDK 17 or 21 only (see §6) |
 | Test device | Android emulator (`sdk gphone64 x86 64`, Android 17 / API 37) |
@@ -783,4 +881,4 @@ flutter build ipa --release
 
 ---
 
-*Last updated: 19 November 2026 — includes everything up to §3N (documentation refresh + UML review).*
+*Last updated: 21 November 2026 — includes §3A–§3J (app implementation and review history), §3K (developer information website, Firebase Hosting preparation and new icon/logo; deployment still pending), §3L (app icon and splash), §3M (Mac setup, iOS release preparation, AdMob ID clarification and Unity service hardening), §3N (website phone mock-up), §3O (documentation v2.0) §3P (App Store header and search-result art) and §3Q (App Store What's New, description and promotional text drafts; UML review). iOS-only release checklist in §4.1.*

@@ -36,7 +36,7 @@ class AdHelper {
       } else if (Platform.isIOS) {
         // TODO: Replace with your real iOS Interstitial ad unit ID from AdMob dashboard
         // AdMob → Apps → myanmar_alphabet (iOS) → Ad units → Create interstitial
-        return 'ca-app-pub-4129659429509766/REPLACE_IOS_INTERSTITIAL';
+        return 'ca-app-pub-4129659429509766/7699563630';
       } else {
         throw UnsupportedError('Unsupported platform');
       }
